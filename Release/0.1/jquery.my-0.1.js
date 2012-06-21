@@ -1,13 +1,21 @@
-
+/*
+ * jQuery.my 0.1 beta
+ * (c) ermouth
+ * See details at jquerymy.com
+ */
 
 (function( $ ){
+	var mys={};
 	var f = {
-		bind: function (data, uiNode, val) { 
+		con: function () {
+			try {console.log (arguments);} catch (e) {};
+		},
+		bind: function (data, val, uiNode, $formNode) { 
 		//sets or retrieves data using bind function
 		
 			var bind = uiNode.bind;
 			if (Object.isFunction(bind)) {
-				return bind(data,val);
+				return bind(data,val,$formNode);
 			} else if (Object.isString(bind)) {
 				if (data[bind]!=null) {
 					if (val!=null) data[bind] = String(val); 
@@ -22,17 +30,23 @@
 		//checks if val is inconsistent for uiNode pattern
 			
 			var pat = uiNode.check;
-			var err = uiNode["error"]||"Ошибка";
-			if (Object.isFunction(pat)) {
-				return pat(data,val, $formNode);
-			} else if (Object.isRegExp(pat)) {
-				return ( (pat.test(String(val))) ? "":err );
-			} else if (Object.isArray(pat)) {
-				return ( (pat.indexOf(val)>-1)?"":err);				
-			} else if (Object.isString(pat)) {
-				return (val==pat?"":err);
+			if (pat != null) {
+				var err = uiNode["error"]||$formNode.data("my").root.data("my").params.errorMessage||"Error";
+				if (Object.isFunction(pat)) {
+					return pat(data,val, $formNode);
+				} else if (Object.isRegExp(pat)) {
+					return ( (pat.test(String(val))) ? "":err );
+				} else if (Object.isArray(pat)) {
+					return ( (pat.indexOf(val)>-1)?"":err);				
+				} else if (Object.isString(pat)) {
+					return (val==pat?"":err);
+				} else if (Object.isObject(pat))  {
+					return pat[val]?"":err;
+				}
+				return err;
+			} else {
+				return "";
 			}
-			return err;
 		},
 		
 		field:function(jo,val) { 
@@ -76,7 +90,7 @@
 			} else { //retrieve
 				if (type=="input") {
 					var stype = jo.eq(0).attr("type").toLowerCase();
-					if ((/^number|text|hidden|password$/).test(stype) ) {
+					if ((/^number|text|hidden|password|button$/).test(stype) ) {
 						return jo.val();
 					} else if (stype=="radio") {
 						var c = "";
@@ -87,7 +101,7 @@
 					}
 				} else if ((/^select|textarea$/).test(type)) {
 					return jo.val();				
-				} else if ((/^p|div|span|li|t[dh]|a$/).test(type)) {
+				} else if ((/^p|div|span|li|t[dh]|h[1-6]|a$/).test(type)) {
 					return jo.html().compact();
 				} else if (type=="img") {
 					return jo.attr("src");
@@ -95,7 +109,7 @@
 			}
 		},
 		update:function ($o, value, depth) {
-			var $this = $o, xdata = $this.data("my");
+			var $this = $o, xdata = $this.data("my"), err="Unknown error";
 			if (xdata) {
 				$root = xdata.root, $container = xdata.container;
 				var selector = xdata.selector, d = xdata.data, oui = xdata.ui;
@@ -104,18 +118,22 @@
 				if (value!=null) {
 					var val = value;
 				} else {
-					val = f.field($root.find(selector),f.bind(d,oui));
+					val = f.field($root.find(selector),f.bind(d,null,oui,$o));
 				}
 				
-				//validating, if correct putting to data
-				var err = f.isOut(d,val,oui, $this);
+				//validating and storing if correct
+				try {
+					var err = f.isOut(d,val,oui, $this);
+				} catch (e) {
+					f.con ("Error "+ e.name+" validating "+selector );
+				};
 				if (err=="") {
 					$root.data("my").errors[selector]= "";
-					f.bind(d,oui,val);
-					$container.removeClass("my-error").find(p.errorTip).removeClass("my-error").html("").hide();
+					f.bind(d,val,oui,$o);
+					$container.removeClass(p.errorCss).find(p.errorTip).removeClass(p.errorCss).html("").hide();
 				} else {
 					$root.data("my").errors[selector]= err;
-					$container.addClass("my-error").find(p.errorTip).addClass("my-error").show().html(err);
+					$container.addClass(p.errorCss).find(p.errorTip).addClass(p.errorCss).show().html(err);
 				}
 				
 				//applying conditional formatting if any
@@ -123,21 +141,14 @@
 					for (var css in oui.css) {
 						var oc = oui.css[css];
 						if (Object.isRegExp(oc)) {
-							if (oc.test(val)) {
-								$container.addClass(css)
-							} else {
-								$container.removeClass(css)
-							}
+							if (oc.test(val)) $container.addClass(css); else $container.removeClass(css);
 						} else if (Object.isFunction(oc)) {
-							if (oc(data,val)) {
-								$container.addClass(css)
-							} else {
-								$container.removeClass(css)
-							}
+							if (oc(data,val)) $container.addClass(css); else $container.removeClass(css);
 						}
 					}
 				}
 				
+				//recalculating dependent fields
 				if (depth && oui.recalc) {
 					var list = oui.recalc, dest = [], once = {};
 					if (Object.isString(list)) list = list.split(",");				
@@ -187,13 +198,13 @@
 					//returns container div for field or whatever if any 
 					//it can be the firstmost elt with fieldcontain role or
 					//fieldset, div or form in depth of not mre than 2
-					if ( !(/^(div|span|a|li|p|h[1-4])$/).test($(jobj)[0].tagName.toLowerCase())) {
+					if ( !(/^(div|span|a|li|p|h[1-6]|t[dh])$/).test($(jobj)[0].tagName.toLowerCase())) {
 						var op = jobj.parents('*[data-role="fieldcontain"], *.tagstrip');
 						if (op.size()==0){
 							var oa =  jobj.parents('*');
 							var op0=false;
 							for (var i =0; i<3; i++) {
-								if (!op0 && (/div|span|form|fieldset/).test(oa[i].tagName.toLowerCase())) {
+								if (!op0 && (/div|span|form|p|fieldset/).test(oa[i].tagName.toLowerCase())) {
 									op0 = oa[i];
 								}
 							}
@@ -204,37 +215,41 @@
 						return jobj;
 					}
 			  	},
-			  	commit:function() {
-			  		
-			  	},
+			  	commit:function() {},
 			  	recalcDepth:2,
+			  	checkDelay:0,
+			  	errorMessage:"Incorrect input!",
 			  	errorTip:".my-error-tip",
+			  	errorCss:"my-error",
 			  	oninit:function(){}
 			  }, data.params||{}) ;
-			 
+			
 			var ui = $.extend(true,{}, data.ui||{}) ;
 			
+			var myid =  data.id || ("auto"+Math.random(100000000,999999999));
+						
 			var d = data.data//$.extend(true,{}, data.data||{}) ;
 			obj.data("my", {
+				id: myid,
 				data:d, 
 				params:p, 
 				errors:Object.extended(), 
-				ui:Object.extended(ui)	
+				ui:Object.extended(ui)
 			});
 			
 			for (var i in ui) {
 				var  o = $(this).find(i);
 				var dui = ui[i];
 				if (o.size()>0) {
-					var v = f.bind(d,dui,null);
+					var v = f.bind(d,null,dui,o);
 					if (v!=null) {
 						f.field(o,v);
 						o.each(function() {
 							var $this = $(this);
-							$this.bind("blur.my input.my change.my check.my", function(){
-								f.update($this, f.field($this.data("my").root.find($this.data("my").selector)), p.recalcDepth);								
-								//here must be recalc and redraw
-							}).data("my",{
+							var events = "blur.my input.my change.my check.my"+($.browser.msie?" keyup.my":"");
+							if ($this.is('[type="button"]')) events = "click.my check.my";
+							$this.data("my",{
+								events:events,
 								selector:i,
 								ui:dui,
 								initial:v,
@@ -242,11 +257,19 @@
 								root:obj,
 								data:d,
 								container:p.getContainer($this)
-							});
+							}).bind(events, (function(){
+								var data = $this.data("my");
+								f.update($this, 
+										f.field(data.root.find(data.selector)), 
+										 data.ui.recalcDepth||p.recalcDepth);								
+								//here must be recalc and redraw
+							}).debounce(p.checkDelay));
 						});
 					} else {
-						try {console.log("Not found "+i+" selector");} catch (e) {};
+						f.con("Bind function for "+i+" selector returned null. Form "+myid);
 					}
+				} else {
+					f.con ("Not found "+i+" selector at form "+myid);
 				}
 			}
 			for (var i in ui) {
@@ -258,10 +281,10 @@
 		
 		//###### REDRAW ######
 		
-		redraw : function() {
+		redraw : function( noRecalc ) {
 			var $this = this;
 			$this.data("my").ui.each(function(key) {
-				f.update($this.find(key), undefined , $this.data("my").params.reclcDepth)
+				f.update($this.find(key), noRecalc?null:undefined , $this.data("my").params.reclcDepth)
 			})
 		},
 		
@@ -275,11 +298,38 @@
 			return $(this).data("my").data;
 		},
 		
-		//###### RESET INITIALS ######
+		//###### RETURNS ERRORS ######
+		
+		errors: function() {
+			var e0 = $(this).data("my").errors, e = {};
+			for (var i in e0) {
+				if (e0[i] && typeof e0[i] == 'string') e[i]=e0[i];
+			}
+			return e;
+		},
+		
+		//###### RESET INITIAL VALUES ######
 		
 		reset: function () {
-			$.extend(true, this.data("my").data, this.data("my").initial);
-			this.my("redraw");
+			try {
+				$.extend(true, this.data("my").data, this.data("my").initial);
+				this.my("redraw");
+			} catch (e) {return false;}
+			return true;
+		},
+		
+		//###### REMOVE jQuery.my INSTANCE FROM THE FORM ######
+		
+		remove: function (){
+			var $this = this;
+			$this.data("my").ui.each(function(key) {
+				var $obj = $this.find(key);
+				$obj.unbind($obj.data("my").events)
+					.removeData("my");
+			});
+			var d = $this.data("my").data;
+			$this.removeData("my");
+			return d;
 		}
 	};
 
@@ -295,82 +345,3 @@
 	};
 
 })( jQuery );
-
-
-var calc = {
-	make: function(data, bounds) {
-	//Returns interpolator function of (x,y).
-	//data is array of fixed points in xyz space, formed like a table of values of z(x,y) function
-	//where x and y grows monotonically by columns and rows
-	/*[
-	 * [.1,	0,	100		], //here .1 is precision, 0 and 100 x coordinates of fixed points
-	 * [0,	1,	10		], //here 0 is y coordinate of values and 1,10 is values of z(0,0) and z(100,0)
-	 * [10,	10,	1000	], //here 10 is y coordinate of values and 10,1000 is values of z(0,10) and z(100,10)
-	 * [20,	20,	1500	]  //here 20 is y coordinate of values and 20,1500 is values of z(0,0) and z(100,0)
-	]*/
-	// bounds is arbitrary function of x,y which must return false if xy pair of args lays outside 
-	// of required boundaries.
-
-	//For example
-	//	calc.make([[1,1,10],[1,1,10],[10,10,100]], function (x,y) {return !!(x>0 && y>0)})
-	//will return function of x,y, calculating rounded integer product of arguments if they both are >0 or null otherwise
-
-		var a = data.clone(), xc = a[0].length, yc = a.length;
-		var ok = (Object.isFunction(bounds))?(bounds):function(x,y) {
-			return !!(x>=a[0][1] && x<=a[0][xc-1] && y>=a[1][0] && y<=a[yc-1][0]);
-		};
-		var f = function (x,y) {
-			if (isNaN(x) || isNaN(y) || !ok(x,y)) return null;
-			var r = [[a[0][0]],[],[]], xi=0, yi = 0;
-			for (var i=1; i<xc-1; i++) {
-				if ( (x>=a[0][i] && x<= a[0][i+1]) ||
-					 (i==1 && x<a[0][1]) || 
-					 (i==xc-2 && x>a[0][xc-1])
-				) {
-					r[0][1]=a[0][i];
-					r[0][2]=a[0][i+1];
-					xi=i;
-				}
-			}
-			if (xi>0) {
-				for (var i=1; i<yc-1; i++) {
-					if ((y>=a[i][0] && y<= a[i+1][0]) ||
-						(i==1 && y<a[1][0]) || 
-						(i==yc-2 && y>a[yc-1][0])	
-					) {
-						r[1] = [a[i][0], a[i][xi], a[i][xi+1]];
-						r[2] = [a[i+1][0], a[i+1][xi], a[i+1][xi+1]];
-						yi=i;
-					} 					
-				}
-				if (yi>0) {
-					var p11=r[1][1];var p12=r[1][2];var p21=r[2][1];var p22=r[2][2];
-				    var x1=r[0][1];var x2=r[0][2];var y1=r[1][0];var y2=r[2][0];
-				    var n = (p11+(x-x1)*(p12-p11)/(x2-x1))*(1-(y-y1)/(y2-y1))+(p21+(x-x1)*(p22-p21)/(x2-x1))*(1-(y2-y)/(y2-y1));
-				    if (isNaN(n)) return null;
-				    return r[0][0]*Math.round(n/r[0][0]);
-				}
-			}
-			return null;
-		}
-		return f;
-	},
-	impo: function (x0,y0,px,py, add0) {
-		var add = add0||4, x=1*x0+add, y=1*y0+add;
-		function f(x) {return Math.floor(x);}
-		return Math.max( f(py/y)*f(px/x), f(px/y)*f(py/x) );
-	},
-	filter: function (obj, f) {
-		if (!Object.isObject(obj) || !Object.isFunction(f)) return {};
-		var o = {};
-		for (i in obj) {
-			if (f(i, obj[i])) o[i]=obj[i];
-		}
-		return o;
-	}
-}
-
-
-
-
-/*ᴥ 1D25*/

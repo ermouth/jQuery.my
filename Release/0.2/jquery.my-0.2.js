@@ -1,7 +1,11 @@
 /*
- * jQuery.my 0.1
+ * jQuery.my 0.2 beta. 
+ * 
  * (c) ermouth
  * See details at jquerymy.com
+ * 
+ * Requires jQuery 1.7.1+, SugarJS 1.2.5+
+ * 
  */
 
 (function( $ ){
@@ -14,13 +18,15 @@
 		//sets or retrieves data using bind function
 		
 			var bind = uiNode.bind;
-			if (Object.isFunction(bind)) {
+			if (typeof bind == "function") {
 				return bind(data,val,$formNode);
-			} else if (Object.isString(bind)) {
-				if (data[bind]!=null) {
-					if (val!=null) data[bind] = String(val); 
-					return data[bind];
-				} 
+			} else if (typeof bind == "string") {
+				if (val!=null)  {
+					data[bind] = String(val);
+				} else {
+					if (data[bind]===undefined) data[bind] = null;
+				};
+				return data[bind];
 			}
 			return null;
 		},
@@ -32,15 +38,16 @@
 			var pat = uiNode.check;
 			if (pat != null) {
 				var err = uiNode["error"]||$formNode.data("my").root.data("my").params.errorMessage||"Error";
-				if (Object.isFunction(pat)) {
+				var type = $.type(pat);
+				if (type=="function") {
 					return pat(data,val, $formNode);
-				} else if (Object.isRegExp(pat)) {
+				} else if (type=="regexp") {
 					return ( (pat.test(String(val))) ? "":err );
-				} else if (Object.isArray(pat)) {
+				} else if (type=="array") {
 					return ( (pat.indexOf(val)>-1)?"":err);				
-				} else if (Object.isString(pat)) {
+				} else if (type=="string") {
 					return (val==pat?"":err);
-				} else if (Object.isObject(pat))  {
+				} else if (type=="object")  {
 					return pat[val]?"":err;
 				}
 				return err;
@@ -49,11 +56,12 @@
 			}
 		},
 		
-		field:function(jo,val) { 
+		field:function(jo,val0) { 
 			//sets or retrieves field value
 			var type = jo[0].nodeName.toLowerCase();
 			
-			if (val!=null) { //set
+			if (val0!=null) { //set
+				var val = String(val0);
 				if (type=="input") {
 					var stype = jo.eq(0).attr("type").toLowerCase();
 					if ((/^number|text|hidden|password$/).test(stype)) {
@@ -66,7 +74,7 @@
 						var pos = -1;
 						jo.each(function(ind) {
 							var v = $(this).val();
-							if (v==val) pos=ind;
+							if (v===val) pos=ind;
 						})
 						jo.each(function(){$(this).attr("checked",false).checkboxradio("refresh")});
 						if (pos>-1) {
@@ -77,7 +85,10 @@
 					if (jo.val()!=val) {
 						jo.val(val);				
 						if (jo.hasClass("ui-slider-switch")) 
-							jo.slider("refresh"); else jo.selectmenu("refresh",true);
+							jo.slider("refresh"); 
+						else {
+							if (jo.selectmenu) jo.selectmenu("refresh",true);
+						}
 					}
 				}  else if (type=="textarea") {
 					if (jo.val()!=val) jo.val(val);
@@ -143,7 +154,7 @@
 						if (Object.isRegExp(oc)) {
 							if (oc.test(val)) $container.addClass(css); else $container.removeClass(css);
 						} else if (Object.isFunction(oc)) {
-							if (oc(data,val)) $container.addClass(css); else $container.removeClass(css);
+							if (oc(d,val,$o)) $container.addClass(css); else $container.removeClass(css);
 						}
 					}
 				}
@@ -168,18 +179,25 @@
 						for (var i=0; i<dest.length; i++) {
 							once = $.extend(true, once, f.update($root.find(dest[i]),null,depth-1));
 						}
-						if (value!==null) {
+						if (value!==null) { // here is a trick -- we may call f.update ($o, undefined, 1)
+											// and force update if we want only retrieve
 							for (i in once) {
 								if (once[i]===true && i!=selector) f.update($root.find(i),null,depth-1);
 							}
 							return {};
+							
+							//f.undo ()
 						}
 					}
 				}
+				
+				
 				return once||{};
 			}
 		}
 	};
+	
+	var forms = {};
 	
 	var methods = {
 		  
@@ -187,7 +205,9 @@
 			
 		init : function( data ) { 
 			var obj = this;
-			if (!data) {
+			if (!data) return obj;
+			if (Object.isObject(obj.data("my")) && obj.data("my").id && obj.data("my").ui) {
+				f.con ("$.my is already bind!");
 				return obj;
 			}
 			
@@ -215,20 +235,22 @@
 						return jobj;
 					}
 			  	},
-			  	commit:function() {},
+			  	change:function() {},
 			  	recalcDepth:2,
-			  	checkDelay:0,
+			  	delay:0,
 			  	errorMessage:"Incorrect input!",
 			  	errorTip:".my-error-tip",
 			  	errorCss:"my-error",
-			  	oninit:function(){}
+			  	oninit:function(){},
+			  	remember:10,
+			  	undos:[]
 			  }, data.params||{}) ;
 			
 			var ui = $.extend(true,{}, data.ui||{}) ;
 			
 			var myid =  data.id || ("auto"+Math.random(100000000,999999999));
 						
-			var d = data.data//$.extend(true,{}, data.data||{}) ;
+			var d = data.data || {};
 			obj.data("my", {
 				id: myid,
 				data:d, 
@@ -244,30 +266,33 @@
 					var v = f.bind(d,null,dui,o);
 					if (v!=null) {
 						f.field(o,v);
-						o.each(function() {
-							var $this = $(this);
-							var events = "blur.my input.my change.my check.my"+($.browser.msie?" keyup.my":"");
-							if ($this.is('[type="button"]')) events = "click.my check.my";
-							$this.data("my",{
-								events:events,
-								selector:i,
-								ui:dui,
-								initial:v,
-								previous:v,
-								root:obj,
-								data:d,
-								container:p.getContainer($this)
-							}).bind(events, (function(){
-								var data = $this.data("my");
-								f.update($this, 
-										f.field(data.root.find(data.selector)), 
-										 data.ui.recalcDepth||p.recalcDepth);								
-								//here must be recalc and redraw
-							}).debounce(p.checkDelay));
-						});
 					} else {
-						f.con("Bind function for "+i+" selector returned null. Form "+myid);
+						v = f.field(o, null);
+						v = f.bind(d,v,dui,o);
 					}
+					o.each(function() {
+						var $this = $(this);
+						var events = "blur.my input.my change.my check.my"+($.browser.msie?" keyup.my":"");
+						if ($this.is('[type="button"]')) events = "click.my check.my";
+						$this.data("my",{
+							id:myid,
+							events:events,
+							selector:i,
+							ui:dui,
+							initial:v,
+							previous:v,
+							root:obj,
+							data:d,
+							container:p.getContainer($this),
+							errors:obj.data("my").errors
+						}).bind(events, (function(){
+							var data = $this.data("my");
+							f.update($this, 
+									f.field(data.root.find(data.selector)), 
+									 data.ui.recalcDepth||p.recalcDepth);
+							p.change();
+						}).debounce(p.delay));
+					});
 				} else {
 					f.con ("Not found "+i+" selector at form "+myid);
 				}
@@ -276,7 +301,10 @@
 				this.find(i).trigger("check");
 			};
 			obj.data("my").initial = $.extend(true,{},d);
+			forms[myid] = obj;
 			if ($.mobile) $.mobile.changePage($.mobile.activePage);
+			
+			return obj;
 		},
 		
 		//###### REDRAW ######
@@ -285,7 +313,7 @@
 			var $this = this;
 			$this.data("my").ui.each(function(key) {
 				f.update($this.find(key), noRecalc?null:undefined , $this.data("my").params.reclcDepth)
-			})
+			});
 		},
 		
 		//###### SET OR RETRIEVE DATA ######
@@ -316,6 +344,21 @@
 				this.my("redraw");
 			} catch (e) {return false;}
 			return true;
+		},
+		
+		//###### GET id OR SEARCH BY id ######
+		
+		id: function (id) {
+			if (typeof id == "string") {
+				return forms[id]||null;
+			} else {
+				var d = this.data("my")
+				if (d && d.id) {
+					return d.id;
+				} else {
+					return null;
+				}
+			}
 		},
 		
 		//###### REMOVE jQuery.my INSTANCE FROM THE FORM ######
