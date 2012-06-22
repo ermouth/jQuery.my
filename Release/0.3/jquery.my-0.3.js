@@ -98,7 +98,7 @@
 					jo.attr("src",val);
 				}
 				return val;
-			} else { //retrieve
+			} else { //retrieve  
 				if (type=="input") {
 					var stype = jo.eq(0).attr("type").toLowerCase();
 					if ((/^number|text|hidden|password|button$/).test(stype) ) {
@@ -119,6 +119,7 @@
 				}
 			}
 		},
+		
 		update:function ($o, value, depth) {
 			var $this = $o, xdata = $this.data("my"), err="Unknown error";
 			if (xdata) {
@@ -195,6 +196,57 @@
 				
 				return once||{};
 			}
+		},
+		
+		history: function (x, params, remove) {
+		// push or retrieves current state to history,
+		//if x is object, pushes it's clone to history with timestamp,
+		//if x is null or 0 returns last pushed state,
+		//if x is a positive num, returns push state x steps back
+		//if remove is true, removes the retrieved state if x is num
+		//or replaces last element in history if x is object.
+		//params is a reference to params object of $.my instance
+			
+		//if object is passed return this object if ok or null if 
+		//last elt in history is egal to object passed
+			
+			var p = params;
+			if ($.type(p)!="object" || isNaN(p.remember) || $.type(p.history)!="object") return null;
+			var h = p.history;
+			var l = p.remember;
+			
+			if ($.type (x) == "object") {
+				var step = Object.extended($.extend(true,{},x));
+				var time = (new Date).valueOf();
+				var k = h.keys().sort();
+				if (k.length>0 && time-k[k.length-1]< p.historyDelay) return null;
+				if (k.length>0 && h[k[k.length-1]].equals(step)) return null;
+				p.history[time] = step; k.push(time);
+				if (k.length >= l*2) {
+					var newh = Object.extended();
+					for (var i=l; i<l*2; i++) {
+						newh[k[i]] = h[k[i]];
+					}
+					params.history = newh;
+				}
+				return p.history[k[k.length-1]];
+			}
+			
+			if (!isNaN(x) || x===null) {
+				var n = parseInt(x) || 0;
+				if (n<0) return null;
+				var k = h.keys().sort();
+				if (n>=k.length) n = k.length-1;
+				var old = p.history[k[k.length-n-1]].clone(true);
+				if (remove) {
+					var newh = Object.extended();
+					for (var i=0; i<k.length-n-1; i++) {
+						newh[k[i]] = h[k[i]];
+					}
+					params.history = newh;
+				}
+				return old;
+			}
 		}
 	};
 	
@@ -243,8 +295,9 @@
 			  	errorTip:".my-error-tip",
 			  	errorCss:"my-error",
 			  	oninit:function(){},
-			  	remember:10,
-			  	undos:[]
+			  	remember:100,
+			  	history:Object.extended(),
+			  	historyDelay:10 //delay in ms between subsequent calls of history()
 			  }, data.params||{}) ;
 			
 			var ui = $.extend(true,{}, data.ui||{}) ;
@@ -257,8 +310,10 @@
 				data:d, 
 				params:p, 
 				errors:Object.extended(), 
-				ui:Object.extended(ui)
+				ui:Object.extended(ui),
+				history:p.history
 			});
+			
 			
 			for (var i in ui) {
 				var  o = $(this).find(i);
@@ -284,13 +339,17 @@
 							previous:v,
 							root:obj,
 							data:d,
+							params:p,
 							container:p.getContainer($this),
 							errors:obj.data("my").errors
 						}).bind(events, (function(){
 							var data = $this.data("my");
+							if (!data.errors || data.errors.values().compact(true).length==0) 
+								data.root.data("my").lastCorrect = $.extend(true, {}, data.data)
+							f.history(data.data, data.params);
 							f.update($this, 
 									f.field(data.root.find(data.selector)), 
-									 data.ui.recalcDepth||p.recalcDepth);
+									 dui.recalcDepth||p.recalcDepth);
 							p.change();
 						}).debounce(p.delay));
 					});
@@ -374,7 +433,29 @@
 			var d = $this.data("my").data;
 			$this.removeData("my");
 			return d;
-		}
+		},
+		
+		//###### UNDO ######
+		
+		undo: function (steps){
+			var $this = this;		
+			var d = $this.data("my");
+			var h = d.params.history;
+			var k = h.keys().sort();
+			var diff = 1*(parseInt(steps)||0);
+			if (k.length==0 || diff<0) return null;		
+			
+			if (!d.params.errors || d.params.errors.values().compact(true).length==0) {			
+				if (h[k[k.length-1]].equals(Object.extended(d.data))) diff+=1;
+			} else {
+				if (!Object.extended(d.data).equals(Object.extended(d.lastCorrect))) diff+=1;
+			}
+			$.extend(true, $this.data("my").data, f.history(diff, d.params, true)||{});
+			$this.my("redraw");
+			return $this.data("my").data;
+		},
+		
+		history: function (a,c) {return f.history(a, this.data("my").params, c);}
 	};
 
 	$.fn.my = function( method ) {
