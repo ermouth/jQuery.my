@@ -1,5 +1,8 @@
 /*
  * jQuery.my 0.3 beta. 
+ * -- added undo
+ * -- jQuery UI slider, buttonset and datepicker 
+ *    are now recognized
  * 
  * (c) ermouth
  * See details at jquerymy.com
@@ -9,11 +12,120 @@
  */
 
 (function( $ ){
-	var mys={};
+	//some masks
+	var r = {
+		i:/^number|text|hidden|password|button|slider$/,
+		div:/^p|div|span|form|fieldset|pre|code|li|t[dh]|h[1-6]|a$/
+	}
 	var f = {
 		con: function () {
 			try {console.log (arguments);} catch (e) {};
 		},
+		
+		
+		field:function(jo,val0) { 
+		//sets or retrieves jQuery  object's value,
+		//understands all main HTML controls
+		//and some controls of jQuery UI
+			
+			var type = jo[0].nodeName.toLowerCase();	
+			if (val0!=null) { 
+
+			//############## set ###############
+				
+				var val = String(val0);
+				if (type=="input") {
+					var stype = jo.eq(0).attr("type").toLowerCase();
+					if ((r.i).test(stype)) {
+						if (jo.val()!=val) {
+							if (jo.hasClass("hasDatepicker")) {
+								if (f.mydate(jo.datepicker("getDate")).to(10) != 
+									f.mydate(f.mydate(val)).to(10)) jo.datepicker("setDate", f.mydate(val));
+							} else {
+								jo.val(val);
+								if (jo.hasClass("ui-slider-input")) jo.slider("refresh");
+								if (jo.data("tagstrip") && jo.data("tagstrip").root) jo.trigger("update");
+							}
+						}
+					} else if (stype=="radio") {
+						var pos = -1;
+						jo.each(function(ind) {
+							var v = $(this).val();
+							if (v===val) pos=ind;
+						});
+						jo.each(function(){
+							var jor = $(this).eq(pos);
+							jor.attr("checked",false)
+							if (jo.eq(pos).checkboxradio) jor.checkboxradio("refresh");
+						});
+						if (pos>-1) {
+							var jor = jo.eq(pos);
+							jor.attr("checked",true)
+							if (jo.eq(pos).checkboxradio) jor.checkboxradio("refresh");
+						}
+					}
+				} else if (type=="select") {
+					if (jo.val()!=val) {
+						jo.val(val);				
+						if (jo.hasClass("ui-slider-switch")) 
+							jo.slider("refresh"); 
+						else {
+							if (jo.selectmenu) jo.selectmenu("refresh",true);
+						}
+					}
+				}  else if (type=="textarea") {
+					if (jo.val()!=val) jo.val(val);
+				} else if ((r.div).test(type)) {
+					if (jo.hasClass("ui-slider")) jo.slider("option","value", val);
+					else if (jo.hasClass("hasDatepicker")) jo.datepicker("setDate", f.mydate(val));
+					else if (jo.hasClass("ui-buttonset")) {
+						var jon; 
+						jo.find(":radio").each(function () {
+							jon=$(this).button("option", "label")==val?$(this):jon;
+						});
+						if (jon) {
+							jon.attr("checked","checked"); 
+							jo.buttonset("refresh");
+						} 
+					}
+					else jo.html(val);
+				} else if (type=="img") {
+					jo.attr("src",val);
+				}
+				return val;
+			} else { 
+				
+			//############## retrieve ###############
+				
+				if (type=="input") {
+					var stype = (jo.eq(0).attr("type")||"text").toLowerCase();
+					if ((r.i).test(stype) ) {
+						if (jo.hasClass("hasDatepicker")) return f.mydate(jo.datepicker("getDate")||(new Date));
+						return jo.val();
+					} else if (stype=="radio") {
+						var c = "";
+						jo.each(function(){
+							if (this.attributes["checked"]) c=$(this).val();
+						})
+						return c;
+					}
+				} else if ((/^select|textarea$/).test(type)) {
+					return jo.val();				
+				} else if ((r.div).test(type)) {
+					if (jo.hasClass("ui-slider")) return String(jo.slider("option","value"))||"";
+					if (jo.hasClass("ui-buttonset")) {
+						var jor = jo.find(":radio:checked")
+						if (jor.size() && jor.button) return jor.button("option", "label") ;
+						return "";
+					}
+					if (jo.hasClass("hasDatepicker")) return f.mydate(jo.datepicker("getDate")||(new Date));
+					return jo.html().compact();
+				} else if (type=="img") {
+					return jo.attr("src");
+				}
+			}
+		},
+		
 		bind: function (data, val, uiNode, $formNode) { 
 		//sets or retrieves data using bind function
 		
@@ -31,6 +143,20 @@
 			return null;
 		},
 		
+		mydate:function(d) {
+			if (typeof d == "number" || !isNaN(d) && parseInt(d)==d) {
+				return (new Date(parseInt(d)));
+			}
+			if (typeof d=="string") {
+				if (Date.create) return Date.create(d);
+				return (new Date(d));
+			}
+			if ($.type(d)=="date" || d==null) {
+				return (Date.create?Date.create(d).format("{yyyy}-{MM}-{dd}T{HH}:{mm}{isotz}"):String(d));
+			}
+			
+			return (new Date);
+		},
 		
 		isOut:function (data,val, uiNode, $formNode) {
 		//checks if val is inconsistent for uiNode pattern
@@ -56,69 +182,6 @@
 			}
 		},
 		
-		field:function(jo,val0) { 
-			//sets or retrieves field value
-			var type = jo[0].nodeName.toLowerCase();
-			
-			if (val0!=null) { //set
-				var val = String(val0);
-				if (type=="input") {
-					var stype = jo.eq(0).attr("type").toLowerCase();
-					if ((/^number|text|hidden|password$/).test(stype)) {
-						if (jo.val()!=val) {
-							jo.val(val);
-							if (jo.hasClass("ui-slider-input")) jo.slider("refresh");
-							if (jo.data("tagstrip") && jo.data("tagstrip").root) jo.trigger("update");
-						}
-					} else if (stype=="radio") {
-						var pos = -1;
-						jo.each(function(ind) {
-							var v = $(this).val();
-							if (v===val) pos=ind;
-						})
-						jo.each(function(){$(this).attr("checked",false).checkboxradio("refresh")});
-						if (pos>-1) {
-							jo.eq(pos).attr("checked",true).checkboxradio("refresh");
-						}
-					}
-				} else if (type=="select") {
-					if (jo.val()!=val) {
-						jo.val(val);				
-						if (jo.hasClass("ui-slider-switch")) 
-							jo.slider("refresh"); 
-						else {
-							if (jo.selectmenu) jo.selectmenu("refresh",true);
-						}
-					}
-				}  else if (type=="textarea") {
-					if (jo.val()!=val) jo.val(val);
-				} else if ((/^p|div|span|li|t[dh]|a$/).test(type)) {
-					jo.html(val);
-				} else if (type=="img") {
-					jo.attr("src",val);
-				}
-				return val;
-			} else { //retrieve  
-				if (type=="input") {
-					var stype = jo.eq(0).attr("type").toLowerCase();
-					if ((/^number|text|hidden|password|button$/).test(stype) ) {
-						return jo.val();
-					} else if (stype=="radio") {
-						var c = "";
-						jo.each(function(){
-							if (this.attributes["checked"]) c=$(this).val();
-						})
-						return c;
-					}
-				} else if ((/^select|textarea$/).test(type)) {
-					return jo.val();				
-				} else if ((/^p|div|span|li|t[dh]|h[1-6]|a$/).test(type)) {
-					return jo.html().compact();
-				} else if (type=="img") {
-					return jo.attr("src");
-				}
-			}
-		},
 		
 		update:function ($o, value, depth) {
 			var $this = $o, xdata = $this.data("my"), err="Unknown error";
@@ -126,14 +189,16 @@
 				$root = xdata.root, $container = xdata.container;
 				var selector = xdata.selector, d = xdata.data, oui = xdata.ui;
 				var p =  $root.data("my").params, ui = $root.data("my").ui;
+				var $we = $root.find(selector);
 				
 				if (value!=null) {
 					var val = value;
 				} else {
-					val = f.field($root.find(selector),f.bind(d,null,oui,$o));
+					val = f.field($we,f.bind(d,null,oui,$o));
 				}
 				
 				//validating and storing if correct
+				//applying or removing error styles
 				try {
 					var err = f.isOut(d,val,oui, $this);
 				} catch (e) {
@@ -141,22 +206,32 @@
 				};
 				if (err=="") {
 					xdata.errors[selector]= "";
-					f.bind(d,val,oui,$o);
-					$container.removeClass(p.errorCss).find(p.errorTip).removeClass(p.errorCss).html("").hide();
+					if (value!=null) {
+						val = f.field($we,f.bind(d,value,oui,$o));
+					}
+					$container.removeClass(p.errorCss).find(p.errorTip).removeClass(p.errorCss).html("").hide(p.animate);
+					$this.removeClass("ui-state-error"); $this.find(".ui-widget").removeClass("ui-state-error")
 				} else {
 					xdata.errors[selector]= err;
-					$container.addClass(p.errorCss).find(p.errorTip).addClass(p.errorCss).show().html(err);
+					$container.addClass(p.errorCss).find(p.errorTip).addClass(p.errorCss).show(p.animate).html(err);	
+					if ($this.hasClass("hasDatepicker")) {
+						if ($this.is("input")) $this.addClass("ui-state-error");
+						else $this.find(".ui-widget").addClass("ui-state-error");
+					}
+					if ($this.hasClass("ui-slider")) $this.addClass("ui-state-error");
 				}
 				
 				//applying conditional formatting if any
-				var cssval = value==null?val:value;
+				var cssval = (value==null?val:value);
 				if (oui.css) {
 					for (var css in oui.css) {
 						var oc = oui.css[css];
 						if (Object.isRegExp(oc)) {
-							if (oc.test(cssval)) $container.addClass(css); else $container.removeClass(css);
+							if (oc.test(cssval)) $container.addClass(css); 
+							else $container.removeClass(css);
 						} else if (Object.isFunction(oc)) {
-							if (oc(d,cssval,$o)) $container.addClass(css); else $container.removeClass(css);
+							if (oc(d,cssval,$o)) $container.addClass(css); 
+							else $container.removeClass(css);
 						}
 					}
 				}
@@ -187,8 +262,6 @@
 								if (once[i]===true && i!=selector) f.update($root.find(i),null,depth-1);
 							}
 							return {};
-							
-							//f.undo ()
 						}
 					}
 				}
@@ -271,13 +344,16 @@
 					//returns container div for field or whatever if any 
 					//it can be the firstmost elt with fieldcontain role or
 					//fieldset, div or form in depth of not mre than 2
-					if ( !(/^(div|span|a|li|p|h[1-6]|t[dh])$/).test($(jobj)[0].tagName.toLowerCase())) {
+					if ( !r.div.test($(jobj)[0]
+							.tagName.toLowerCase()) ||
+							jobj.hasClass("ui-widget")
+					) {
 						var op = jobj.parents('*[data-role="fieldcontain"], *.tagstrip');
 						if (op.size()==0){
 							var oa =  jobj.parents('*');
 							var op0=false;
 							for (var i =0; i<3; i++) {
-								if (!op0 && (/div|span|form|p|fieldset/).test(oa[i].tagName.toLowerCase())) {
+								if (!op0 && r.div.test(oa[i].tagName.toLowerCase())) {
 									op0 = oa[i];
 								}
 							}
@@ -291,6 +367,7 @@
 			  	change:function() {},
 			  	recalcDepth:2,
 			  	delay:0,
+			  	animate:0,
 			  	errorMessage:"Incorrect input!",
 			  	errorTip:".my-error-tip",
 			  	errorCss:"my-error",
@@ -330,6 +407,7 @@
 						var $this = $(this);
 						var events = "blur.my input.my change.my check.my"+($.browser.msie?" keyup.my":"");
 						if ($this.is('[type="button"]')) events = "click.my check.my";
+						else if ($this.hasClass("ui-slider")) events = "slide.my check.my";
 						$this.data("my",{
 							id:myid,
 							events:events,
