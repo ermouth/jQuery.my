@@ -68,7 +68,6 @@
 				},
 				
 				":radio":function ($o,v) {
-					console.log(2)
 				//radio buttons
 					var pos = -1;
 					if (n(v)) {	
