@@ -14,7 +14,7 @@
 (function( $ ){
 	//some masks
 	var r = {
-		i:/^number|text|hidden|password|button|slider$/,
+		i:/^number|text|hidden|password|button|range/,
 		div:/^p|div|span|form|fieldset|pre|code|li|t[dh]|h[1-6]|a$/
 	}
 	var f = {
