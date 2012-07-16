@@ -1,5 +1,12 @@
 /*
- * jQuery.my last modified version
+ * jQuery.my 0.5 beta. 
+ * -- added cleditor() rich text editor support
+ * -- each form can be a single control for other $.my form
+ * -- control's manifest now supports simplified syntax
+ *    like $("#form").my({ui:{ "#control":"x"  }}),
+ *    without redundant bind
+ * -- added $(form).my("ui", {...ui extender...}) method
+ *    allowing to change $.my form at runtime
  * 
  * (c) ermouth
  * See details at jquerymy.com
