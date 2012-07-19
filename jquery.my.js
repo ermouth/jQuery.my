@@ -26,10 +26,7 @@
 		
 	/**/	".my-form": function ($o, v) {
 			//object is jQuery.my instance
-				if ($o && $o.my) {
-					var r=  $o.my("data", v, true);
-					return r;
-				}
+				if ($o && $o.my) return $o.my("data", v, true);
 				else return v||null;
 			},
 				
@@ -279,10 +276,10 @@
 			"":"check.my"
 		},
 		
-	//container retriving functions for different controls
+	//functions retrieving container for different controls
 	//########################################################
 		
-		containers :{
+		containers: {
 			"*[data-role='fieldcontain'] *":{ //jQuery Mobile
 				"input, textarea, select, button, :radio": function ($o) {
 					return $o.parents('[data-role="fieldcontain"]').eq(0);
@@ -301,7 +298,23 @@
 			},
 			"": function ($o) {return $o}
 			
+		},
+	
+	//disablers and enablers
+	//########################################################
+		
+		offon: {
+			//if x==true disables control else enables
+			
+			".ui-selectable": function(x,$o) {f.jquix($o,"selectable",x)},
+			".ui-slider": function(x,$o) {f.jquix($o,"slider",x)},
+			".ui-draggable": function(x,$o) {f.jquix($o,"draggable",x)},
+			".ui-buttonset": function(x,$o) {f.jquix($o,"buttonset",x)},
+			".hasDatepicker": function(x,$o) {f.jquix($o,"datepicker",x)},
+			".my-cleditor": function (x,$o) { $o.cleditor()[0].disable(!!x);},
+			"": function (x, $o) {$o.attr("disabled", !!x);}
 		}
+		
 	};
 	
 	var f = {
@@ -312,6 +325,7 @@
 			var d = $x.data("my"); if (d&&d.data) return d.data;
 			return $x.data("value")||$x.val()||$x.text()||$x.html()||"";
 		},
+		jquix: function ($o, plugin, offon) {return $o[plugin](offon?"disable":"enable")},
 		overlap: function (o1, o2) {
 			return Object.merge(o1, o2, false, function(key, a, b) {
 				if ($.type(b)!="object") return b;
@@ -396,16 +410,16 @@
 		},
 		
 		isOut:function (data,val, uiNode, $formNode) {
-		//checks if val is inconsistent for uiNode pattern			
+		//checks if val fails to meet uiNode.check condition			
 			var pat = uiNode.check;
 			if (pat != null) {
 				var err = uiNode["error"]||$formNode.data("my").root.data("my").params.errorMessage||"Error";
-				switch($.type(pat)){
-					case "function": return pat(data,val, $formNode);
-					case "regexp":return ( (pat.test(String(val))) ? "":err );
-					case "array": return ( (pat.indexOf(val)>-1)?"":err);				
-					case "string": return (val==pat?"":err);
-					case "object":  return pat[val]?"":err;	
+				switch($.type(pat).to(1)){
+					case "f": 	return pat(data,val, $formNode);
+					case "r":	return ( (pat.test(String(val))) ? "":err );
+					case "a": 	return ( (pat.indexOf(val)>-1)?"":err);				
+					case "s": 	return (val==pat?"":err);
+					case "o":  	return pat[val]?"":err;	
 				}
 				return err;
 			} else {
@@ -413,26 +427,35 @@
 			}
 		},
 		
+		css: function (onOff, $o, css0, $we) {
+		//applies-discards conditional formatting or enables-disables field
+			var css = css0.compact();
+			var r = css.replace(/:disabled/g,'');
+			if (r) onOff?$o.addClass(r):$o.removeClass(r);	
+			if (r!=css) { //we have :disabled
+				var $d = $we.eq(0), d = $d.data("my");
+				if (!!onOff!=!!d.disabled) { 
+					$d.data("my").disabled = !!onOff;
+					if (!d.disable) $d.data("my").disable = f.traverse($we, mys.offon).fill(undefined, $we);
+					d.disable(!!onOff);
+				}
+			}
+			return $o;
+		},
 		
-		update:function ($o, value, depth, updateFromParent) {
+		update:function ($o, value, depth) {
+		//validates and updates field and all dependent fields, 
+		//applies conditional formatting
 			var $this = $o, xdata = $this.data("my"), $root = xdata.root;
 			var err="Unknown error", selector = xdata.selector;
 			
 			if (xdata) {
 				var $we = $root.find(selector), isform = $o.hasClass("my-form");
-				if (isform) {
-					var $box = $o;
-					var d = xdata.ddata, oui = xdata.dui;
-					var p =  xdata.dparams;
-				} else {
-					var $box = xdata.container;
-					var d = xdata.data, oui = xdata.ui;
-					var p =  xdata.params;	
-				}
+				if (isform) var $box = $o, d = xdata.ddata, oui = xdata.dui, p =  xdata.dparams;
+				else $box = xdata.container, d = xdata.data, oui = xdata.ui, p =  xdata.params;	
 				
-				
-				if (value!=null) var val = value;
-				else var val = f.field($we,f.bind(d,null,oui,$we));
+				if (n(value)) var val = value;
+				else val = f.field($we,f.bind(d,null,oui,$we));
 
 				
 				//validating and storing if correct
@@ -441,7 +464,7 @@
 					var err = f.isOut(d,val,oui, $we);
 				} catch (e) {
 					f.con ("Error "+ e.name+" validating "+selector );
-				};
+				}
 				var ec = p.errorCss;
 				var jqec = "ui-state-error";
 				if (err=="") {
@@ -466,20 +489,15 @@
 				if (oui.css) {
 					for (var css in oui.css) {
 						var oc = oui.css[css];
-						if (Object.isRegExp(oc)) {
-							if (oc.test(cssval)) $box.addClass(css); 
-							else $box.removeClass(css);
-						} else if (Object.isFunction(oc)) {
-							if (oc(d,cssval,$we)) $box.addClass(css); 
-							else $box.removeClass(css);
-						}
+						if (Object.isRegExp(oc)) f.css (oc.test(cssval), $box, css, $we); 
+						else if (Object.isFunction(oc)) f.css (oc(d,cssval,$we), $box, css, $we); 
 					}
 				}
 				
 				//recalculating dependent fields
 				if (depth && oui.recalc) {
 					var list = oui.recalc, dest = [], once = {}, ui = $root.data("my").ui;
-					if (Object.isString(list)) list = list.split(",");				
+					if (typeof list == 'string') list = list.split(",");				
 					if (Object.isArray(list)) {
 						for (var i in list) {
 							if (list[i] && $.type(list[i])=="string") {
@@ -724,7 +742,7 @@
 		redraw : function( noRecalc, silent) {
 			var $x = this, d = $x.data("my");
 			d.ui.each(function(key) {
-				f.update($x.find(key), noRecalc?null:undefined , d.params.recalcDepth, true)
+				f.update($x.find(key), noRecalc?null:undefined , d.params.recalcDepth)
 			});
 			if (!silent) $x.trigger("change");
 			return $x;
