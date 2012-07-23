@@ -1,5 +1,7 @@
 /*
- * jQuery.my last modified version
+ * jQuery.my 0.5.2. 
+ * -- added support of ":disabled" key in conditional formatting section
+ * -- added support of $.mobile
  * 
  * (c) ermouth
  * See details at jquerymy.com
