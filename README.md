@@ -2,8 +2,6 @@
 
 __A plugin for jQuery that binds HTML controls with underlying javascript object in declarative MVVM style. In real-time.__
 
-Not only standard HTML controls supported, but also jQuery.UI controls, different rich-text and markup editors and several composite controls like Select2. 
-
 jQuery.my recognizes standard HTML controls as well as composite controls rendered by jQuery Mobile, several jQuery UI widgets, Redactor, Ace, CLEditor, Select2 and others. 
 
 Comprehensive validation, conditional formatting and dependencies resolution are available. Forms can be nested – each $.my instance can be used as control for a parent form if any.
@@ -135,7 +133,6 @@ Imagine form that calculates product of two values. We need to recalculate produ
 					return data.num1 * data.num2;
 				},
 				watch: "#factor1,#factor2" //shorthand for ["#factor1", "#factor2"]
-				
 			}
 		}
 	});
