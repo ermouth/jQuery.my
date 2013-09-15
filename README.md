@@ -57,7 +57,12 @@ __To get__ form data just read value of the `person` variable or read `$("#form"
 __To put__ new data into already initialized instance of $.my call `$("#form").my("data", {name: "Mike"})`. Note you can update data partially. Form is redrawn and revalidated after applying new data .
 
 ##More complex data bind
-Manifest allows `bind` to be a bi-directional function. It receives entire data object and new value as params. If `null` is passed the function must only return value for DOM control, otherwise function must put value into data object and then return value for DOM.
+The `bind` field can be defined as a bi-directional function. It receives entire data object and new value as params. 
+If `null` is passed function must only return value for DOM control, otherwise function must put value into 
+data object and then return value for DOM.
+
+So `bind` function implements both getter and setter – depending on value passed.
+
 ```js
 $("#form").my({
 	ui:{
@@ -65,7 +70,8 @@ $("#form").my({
 		"#age" : {
 			bind: function (data, value, $control) {
 				if (value != null) data.metrics.age = value; 
-				return (data.metrics.age + "").replace(/\D/g,"");
+				return data.metrics.age = 
+					(data.metrics.age + "").replace(/\D/g,"");
 			}
 		}
 	}
@@ -212,7 +218,9 @@ $("#form").my({
 ```
 The `events` attribute here defines that bind executed after click or doubleclick events on `#button` element. Note bind returns `undefined` here – this syntax allows us to keep control's content intact. 
 ####Delays
-There are several cases bind function must have kind of an anti-jitter. If control is jQuery.UI Slider or conventional HTML5 `<input type="range">` it's reasonable to execute bind only after slider stopped. Complex bind function executed every pixel slider moves can be real CPU and RAM hog.
+There are several cases bind function must have kind of an anti-jitter. If control is jQuery.UI Slider or conventional HTML5 `<input type="range">` it's reasonable to execute bind only after slider stopped. 
+Complex bind function executed every pixel slider moves can be real CPU and RAM hog.
+
 ```js
 $("#form").my({
 	ui:{
@@ -298,7 +306,8 @@ var manifest = {
 };
 ```
 ##Manifest delivery
-There is buil-in method to convert manifest with functions and regexps into conventional JSON. It's useful for on-demand manifest delivery using ajax calls. `$.my.tojson(manifest)` returns correct JSON-encoded string with all functions and regexps converted to strings.
+There is buil-in method to convert manifest with functions and regexps into conventional JSON. It's useful for on-demand manifest delivery using ajax calls. `$.my.tojson(manifest)` 
+returns correct JSON-encoded string with all functions and regexps converted to strings.
 
 This approach is used in CouchDB to store internal functions as JSON docs. It's quite simple and straightforward.
 ```
