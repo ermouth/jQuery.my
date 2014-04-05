@@ -1,55 +1,49 @@
 #jQuery.my
+[__Get/set data__](#retrieving-and-updating-data) – [__Validation__](#validation) – [__Dependencies__](#dependencies) – [__Conditional formatting__](#conditional-formatting-and-disabling) – [__Initialization__](#init-functions) – [__Nested forms__](#nested-and-repeated-forms)
 
-__A plugin for jQuery that binds HTML controls with underlying javascript object in declarative MVVM style. In real-time.__
+__jQuery.my is a plugin that binds HTML controls with underlying javascript object using declarative MVVM style manifest. Bindings are bi-directional and real-time.__
 
-jQuery.my recognizes standard HTML controls as well as composite controls rendered by jQuery Mobile, several jQuery UI widgets, Redactor, Ace, CLEditor, Select2 and others. 
+jQuery.my recognizes standard HTML controls as well as composite controls rendered by jQuery Mobile, nearly all jQuery UI widgets, Redactor, Ace, CodeMirror, Select2 and others. 
 
 Comprehensive validation, conditional formatting and dependencies resolution are available. Forms can be nested – each $.my instance can be used as control for a parent form if any.
 
-jQuery.my also incorporates simple template engine.
+Forms are promises – any `.init` function can return promise instead of `undefined` and become async.
+
+jQuery.my also incorporates simple template engine and modal dialog mechanics, which also behaves as promise.
 
 See [jquerymy.com/api](http://jquerymy.com/api) for more detailed API, examples and list of compatible controls.
 
 ##Setup
 
-jQuery.my requires jQuery 1.9+ and [SugarJS 1.3.9+](http://sugarjs.com/). 
+jQuery.my requires jQuery 1.11+ and [SugarJS 1.4.0+](http://sugarjs.com/). 
 
 ```html
 <script src="/js/sugar.min.js"></script>
 <script src="/js/jquery.min.js"></script>
-<script src="/js/jquery.my.min.js"></script>
+<script src="/js/jquerymy-0.9.4.min.js"></script>
 ```
-##Quick start
-Lets imagine some underlying form.
-```html
-<div id="form">
-	<div><input id="name" type="text" /></div>
-	<div><input id="age" type="number" /></div>
-</div>
-```	
-To bind this form with some object `person` we just write
+##Quick start 
 ```js
-var person = { name:"John", metrics:{ age:20 }};
-$("#form").my({
-	ui:{
-		"#name": "name",
-		"#age" : "metrics.age"
-	}
-}, person);
-```	
-Now form inputs are filled with init values and any interaction with controls is immidiately pushed into `person` object. Above syntax is a shorthand for
-
-```js	
-$("#form").my({
-	ui:{
+var person={};
+var manifest = {
+	"data": { name:"", metrics:{ age:"" }},
+	"init": function ($node, formRuntimeObj) {
+		$node.html(
+			'<div><input id="name" type="text" /></div>' +
+			'<div><input id="age" type="number" /></div>'
+		);
+	},
+	"ui":{
 		"#name": { bind: "name" },
 		"#age" : { bind: "metrics.age" }
 	}
-}, person);
-```
-Dot notation of deep-level bindings is just syntax sugar. It also can be used with arrays in style like `someArray.1`.
+};
+// Init $.my
+$("#form").my(manifest, person);
+```	
+Now form inputs are filled with init values and any interaction with controls immidiately mutates `person` object. Dot notation of deep-level bindings is just syntax sugar. It also can be used with arrays in style like `someArray.1`.
 
-First param passed to $.my denoted below as __manifest__.
+First param passed to $.my is denoted below as __manifest__.
 
 ##Retrieving and updating data
 __To get__ form data just read value of the `person` variable or read `$("#form").my("data")`. Second way is good if $.my was initialized without any init value passed. 
@@ -57,7 +51,7 @@ __To get__ form data just read value of the `person` variable or read `$("#form"
 __To put__ new data into already initialized instance of $.my call `$("#form").my("data", {name: "Mike"})`. Note you can update data partially. Form is redrawn and revalidated after applying new data .
 
 ##More complex data bind
-The `bind` field can be defined as a bi-directional function. It receives entire data object and new value as params. 
+The `.bind` field can be defined as a bi-directional function. It receives entire data object and new value as params. 
 If `null` is passed function must only return value for DOM control, otherwise function must put value into 
 data object and then return value for DOM.
 
@@ -79,16 +73,14 @@ $("#form").my({
 ```
 Note bind function in example won't allow to input anything than number. Pressing non-num key will do nothing with input, non-num chars are stripped immidiately.
 
-Third param – `$control` – is jQuery obj reference to the control processed.
+Third param `$control` is jQuery reference to the control being processed, it can be useful for navigating over form. Calling `$control.my("find", "#name")` returns `#name` control for example. 
 
 ##Validation
-There are several ways to validate data. Control's validator can be a regexp or a function. Functions unlike regexps can return custom error messages depending on value being checked.
+There are several ways to validate data received from control. Validator can be a regexp or a function. Functions unlike regexps can return custom error messages depending on value being checked. Check is performed just _before_ executing `.bind`.
 
-If value is incorrect `my-error` class is applied to the closest container of the control, otherwise this style rule is removed. 
+If value is incorrect `.my-error` class is applied to the closest DOM container of the control, otherwise this style rule is removed. 
 
-If control is not interactive – we bind some data with `<div>` element for example – `my-error` class is applied to the element itself, not container.
-
-Check is performed _before_ bind.
+If control is not interactive – we bind some data with `<div>` element for example – `.my-error` class is applied to the element itself, not container.
 
 ####RegExp validation
 ```js
@@ -99,16 +91,21 @@ $("#form").my({
 	}
 });
 ```
-If user puts something other than 10-letter combination into `#name` input, `class` attribute of the parent `<div>` is set to `my-error`. 
+If user puts something other than 10-letter combination into `#name` input, `class` attribute of the parent `<div>` is set to `.my-error`. 
 
 ####Validating with function
-Validator function receives same params as bind but executed before bind. Validator must return error message string – or empty string if value is ok.
+Validator function receives same params as `.bind` but executed before bind. Validator must return error message string – or empty string if value is ok.
+
+Unlike `.bind` validator is never called with `value` equal to `null`, it always receives real value.
+
 ```js
 $("#form").my({
+	data:{/*...*/},
+	init: function ($node){/*...*/},
 	ui:{
 		"#name": { 			
-			bind: "name", 
-			check: function (data, value, $control) {
+			"bind": "name", 
+			"check": function (data, value, $control) {
 				if (value.length > 20) return "Too long name"; 
 				if (!/^[a-z]+$/.test(value)) return "Only letters allowed"; 
 				return "";
@@ -118,22 +115,24 @@ $("#form").my({
 	}
 });
 ```
-Messages returned by validator will be dislayed in DOM element with class `my-error-tip` which must be located inside the control's container. So to make messages visible we must explicitly add this element into html.
+Messages returned by validator are put into DOM element with class `.my-error-tip` which must be located inside the control’s container. So to make messages visible we must explicitly add this element into html. If no such elemnt found error message will be added as `title` attribute to the control itself. If control has own `title` it is stashed until error corrected. 
 ```html
 <div>
 	<input id="name" type="text" />
 	<span class="my-error-tip"></span>
 </div>
 ```	
-####Checking form has no errors
-`$("#form").my("errorrs")` returns object, which keys are invalid fields and their values are error messages. If all the fields are ok `{}` is returned.
+####Checking entire form has no errors
+`$("#form").my("errorrs")` returns object, which keys are invalid fields and their values are error messages. If all the fields are ok `{}` is returned. If form has child forms their errors will be located inside appropriate branch, so error object maps to full error tree.
 
 To spot whether entire data is valid or not call `$("#form").my("valid")`.
 	
 ##Dependencies
-Imagine form that calculates product of two values. We need to recalculate product each time any of factors changes.
+Let it be a form that calculates product of two values. We need to recalculate product each time any of factors changes.
 ```js
 $("#form").my({
+	data:{ num1:"10", num2:"1.5" },
+	init: function ($node){/*...*/},
 	ui:{
 		"#factor1": "num1", 
 		"#factor2": "num2",
@@ -146,7 +145,7 @@ $("#form").my({
 	}
 });
 ```
-Product is not mapped to data – bind function does not save anything. It only returns value to put in `#product` DOM element. Every time `#factor1` or `#factor2` receive input `#product` is recalculated.
+Product is not mapped to data – `.bind` function does not save anything. It only returns value to put in `#product` DOM element. Every time `#factor1` or `#factor2` receive input `#product` is recalculated.
 
 There is another syntax to define dependecies.
 ```js
@@ -164,7 +163,7 @@ $("#form").my({
 	}
 });
 ```
-It behaves in same way. Note that `recalc` is processed prior to `watch`. So if a field depends on some other fields via both `recalc` and `watch` attributes, recalcs go first.
+It behaves the same way. Note that `.recalc` is processed prior to `.watch`. So if a field depends on some other fields via both `.recalc` and `.watch` attributes, recalcs go first.
 
 Loop dependencies are resolved correctly.
 
@@ -195,11 +194,119 @@ Here if `#name` is exactly 10 chars, its container will receive class `orange`. 
 
 Input `#age` depends on value of `#name` field and is disabled if `data.name` is empty.
 
-Conditional formatting over appropriate field is applied after `check` and `bind`.
+Conditional formatting over appropriate field is applied after `.check` and `.bind`.
+
+##Init functions
+####Preparing form during initialization
+If underlying form is just a HTML carcass it's good idea to enrich it during $.my instance initialization without any code outside the manifest.
+```js
+$("#form").my({
+	data: { range: [30, 70] },
+	init: function ($node) {
+		$node.html('<input id="range" />')
+	},
+	ui:{
+		"#range": { 	
+			init: function ($control) {
+				$control.slider(range: true, min: 0, max: 100);
+			},	
+			bind: "range"
+		}
+	}
+});
+```
+Here we apply jQuery.UI Slider plugin over `#range` control. Data attribute `range` will receive array of two values – slider start and stop. On start control will be set to 30–70 range.
+
+Certainly HTML carcass itself can be generated using `init` function, placed as child of manifest's root – as in above example. 
+
+####Async init
+To become async `.init` function must return promise of any sort (so-called ‘then-able’). Initialization sequence continues when promise is resolved or fails if promise is rejected.
+
+```js
+$("#form")
+.my({
+	data: { name:"" },
+	init: function ($node, runtime) {
+		var promise = $.ajax({
+			url:"http://some.url"
+		}).then(function (res) {
+			// We received responce, gen form HTML
+			$node.html('<input id="name" type="text"/>')
+			// Assume res is string, mount default data
+			runtime.data.name = res;
+		});
+		
+		return promise;
+	},
+	ui:{"#name": "name"}
+})
+.then(function (data){
+	// Do something when form init finished 
+})
+.fail(function(errMessage) {
+	// Do something if init failed
+});
+```
+jQuery AJAX implementation returns promise, so we may return `$.ajax` result directly. When data is received promise is resolved and initialization continues. When it is finished, promise returned by $.my is resolved with form’s `.data`.
+
+Promises are new to community and yet have no strict standard – so to simplify code `$.Deferred()` model is used inside jQuery.my. 
+
+##Nested and repeated forms
+Each DOM node which was instantiated with $.my can act as a single control for some parent $.my form. DOM node `#child` is instantiated with own manifest in example. 
+```js
+$("#form")
+.my({
+	data: { name:"" , child:{}},
+	init: function ($node, runtime) {
+		//Draw HTML
+	},
+	ui:{
+		"#name": "name",
+		"#child" :{
+			bind:"child", 
+			check:true,		//ensures child’s errors invalidate parent
+			manifest:{
+				data:{/* child’s data struct */},
+				init:{/* child’s init, can be async */},
+				ui:{ /* child’s ui */}
+			}
+		}
+	}
+})
+````
+__To build list of nested forms__ just bind it with array. Below example builds list of similar array elements. 
+```js
+$("#form")
+.my({
+	data: { name:"" , child:[ /* array of elts */]},
+	init: function ($node, runtime) {
+		//Draw HTML
+	},
+	ui:{
+		"#name": "name",
+		"#child" :{
+			bind:"child", 
+			check:true,
+			list:'<div class="someClass"></div>', 	//optional
+			init: function ($list) {				//optional
+				// Makes list items sortable by drag 
+				// and drop, jQuery UI plugin required
+				$list.sortable();
+			},
+			manifest:{
+				data:{/* child’s data struct */},
+				init:{/* child’s init, can be async */},
+				ui:{ /* child’s ui */}
+			},
+			
+		}
+	}
+})
+````
 
 ##Tuning behavior
 ####Events
-$.my knows many types of controls and automatically selects appropriate event handler(s) to provide real-time binding. It's a kind of device driver for different plugins and conventional HTML inputs or noninteractive elements.
+$.my understands many types of controls and automatically selects appropriate event handler(s) to provide real-time binding. It’s a kind of device driver for different plugins and conventional HTML inputs or noninteractive elements.
 
 But sometimes you need no realtime response – in case of buttons or links for example. Bind function must be executed only when button is really clicked, not while initializing. 
 ```js
@@ -216,9 +323,9 @@ $("#form").my({
 	}
 });
 ```
-The `events` attribute here defines that bind executed after click or doubleclick events on `#button` element. Note bind returns `undefined` here – this syntax allows us to keep control's content intact. 
+The `events` attribute here defines that bind executed after click or doubleclick events on `#button` element. Note `.bind` returns `undefined` here – this syntax allows us to keep control's content intact. 
 ####Delays
-There are several cases bind function must have kind of an anti-jitter. If control is jQuery.UI Slider or conventional HTML5 `<input type="range">` it's reasonable to execute bind only after slider stopped. 
+There are several cases bind function must have kind of an anti-jitter. If control is jQuery.UI Slider or conventional HTML5 `<input type="range">` it’s reasonable to exec `.bind` when slider stops. 
 Complex bind function executed every pixel slider moves can be real CPU and RAM hog.
 
 ```js
@@ -231,39 +338,7 @@ $("#form").my({
 	}
 });
 ```
-In this example bind function is executed only after last event within 150ms. If change events are raised more often then one in 150ms, they are supressed. See [live demo](http://jquerymy.com/s/delay078.html) – its much more clear than description.
-
-##Preparing form during initialization
-If underlying form is just a HTML carcass it's good idea to enrich it during $.my instance initialization without any code outside the manifest.
-```js
-$("#form").my({
-	ui:{
-		"#range": { 	
-			init: function ($control) {
-				$control.slider(range: true, min: 0, max: 100);
-			},	
-			bind: "range"
-		}
-	}
-});
-```
-Here we apply jQuery.UI Slider plugin over `#range` control. Data attribute `range` will receive array of two values – slider start and stop. 
-
-Moreover HTML carcass itself can be generated using `init` function, placed as child of manifest's root. The firstmost example can be rewritten in this way:
-```js
-var person = {}, manifest = {
-	data: { name:"John", age:20},
-	init: function ($form) {
-		$form.html( 
-			'<div><input id="name" type="text" /></div>' +
-			'<div><input id="age" type="number" /></div>'
-		);
-	},
-	ui:{"#name": "name", "#age": "age"}
-};
-$("#form").my(manifest, person);
-```
-Now we can apply manifest over empty `<div>` – form will be rendered and initialized with default data (`data` attribute of the manifest).
+In this example `.bind` starts only after last event within 150ms. If change events are raised more often then one in 150ms, they are supressed. See [live demo](http://jquerymy.com/s/delay078.html) – its much more clear than description.
 
 
 ##Reusable code snippets
@@ -285,26 +360,13 @@ $("#form").my({
 				return "";
 			}
 		}
-	}
+	},
+	SomeFunction: function () { // this points to runtime manifest }
 });
 ```
-Not only checks but every function defined receives `this` pointing to manifest when called. 
+Not only checks but every function defined in `.ui` section receives `this` pointing to runtime manifest. Functions located on the first level of manifest (`SomeFunction` in example above) also receive `this` pointing to runtime. 
 
-##Settings
-Below parameters of $.my instance can be tuned for an entire form:
-```js
-var manifest = {
-	params:{
-		delay: 0,		//global anti-jitter delay, can be overriden
-		depth: 2,		//depth of chained/looped recalc resolution
-		errorTip: ".my-error-tip",		//jQuery selector for error msg
-		errorCss: "my-error"			//class to mark invalid controls
-	},
-	data: {...},
-	init: function ($form) {...},
-	ui:{...}
-};
-```
+
 ##Manifest delivery
 There is buil-in method to convert manifest with functions and regexps into conventional JSON. It's useful for on-demand manifest delivery using ajax calls. `$.my.tojson(manifest)` 
 returns correct JSON-encoded string with all functions and regexps converted to strings.
@@ -321,5 +383,22 @@ Method `$.my.fromjson(someJSON)` unwinds encoded functions and regexps into full
 
 There is no need to decipher encoded manifests before passing them to $.my – they are unwinded automatically.
 
+##Settings
+Below parameters of $.my instance can be tuned for an entire form:
+```js
+var manifest = {
+	params:{
+		delay: 0,		//global anti-jitter delay, can be overriden
+		depth: 2,		//depth of chained/looped recalc resolution
+		errorTip: ".my-error-tip",		//jQuery selector for error msg
+		errorCss: "my-error"			//class to mark invalid controls
+	},
+	data: {...},
+	init: function ($form) {...},
+	ui:{...}
+};
+```
+Full set of settings is quite long, they are listed and explained at [jquerymy.com/api/params](http://jquerymy.com/api/params/)
+
 ##Compatibility
-Works fine on IE8+ and other browsers. IE7 requires external JSON library.
+Works fine on IE9+ and other browsers.
