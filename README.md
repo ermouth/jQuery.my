@@ -86,7 +86,11 @@ If control is not interactive – we bind some data with `<div>` element for exa
 ```js
 $("#form").my({
 	ui:{
-		"#name": { bind: "name", check:/^[a-z]{10}$/i},
+		"#name": { 
+			bind: "name", 
+			check:/^[a-z]{10}$/i,
+			error:"10 latin chars" // Optional
+		},
 		"#age":  { bind: "metrics.age" }
 	}
 });
