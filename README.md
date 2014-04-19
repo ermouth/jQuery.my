@@ -1,5 +1,5 @@
 #jQuery.my
-[__Get/set data__](#retrieving-and-updating-data) – [__Validation__](#validation) – [__Dependencies__](#dependencies) – [__Conditional formatting__](#conditional-formatting-and-disabling) – [__Initialization__](#init-functions) – [__Nested forms__](#nested-and-repeated-forms)
+[__Get/set data__](#retrieving-and-updating-data) – [__Validation__](#validation) – [__Dependencies__](#dependencies) – [__Conditional formatting__](#conditional-formatting-and-disabling) – [__Form init__](#init-functions) – [__Nested forms__](#nested-and-repeated-forms) – [__Styling forms__](#styling-forms)
 
 __jQuery.my is a plugin that binds HTML controls with underlying javascript object using declarative MVVM style manifest. Bindings are bi-directional and real-time.__
 
@@ -386,6 +386,51 @@ $.my.tojson({
 Method `$.my.fromjson(someJSON)` unwinds encoded functions and regexps into full-featured code.
 
 There is no need to decipher encoded manifests before passing them to $.my – they are unwinded automatically.
+
+##Styling forms
+Manifest can contain `style` property that defines hierarchy of css rules for form instance. Some rules can be static and other calculated according to form’s init data.
+```js
+{
+	id:"ManifestId",
+	data:{...},
+	init function(){...},
+	ui:{...},
+	style:{
+		" .red": "color:#c02",
+		" .item":{
+			" .name": "font-size:110%",
+			" .user": function ($form, form) {
+				if ($form.width()<500) return "display:none";
+				return "font-size:80%";
+			}
+		},
+		" h2,h3":{
+			"": 		 "font-weight:bold"
+			".light": 	 "font-weight:normal",
+			">img.icon": "width:24px;"
+		}
+	}
+}
+```
+Syntax is more or less straightforward. Note spaces before most rules. Above example will be rendered in two `<style>` sections. 
+```html
+<style id="my-manifest-abc123def">
+	.my-manifest-abc123def .red:{color:#c02}
+	.my-manifest-abc123def .item .name {font-size:110%}
+	.my-manifest-abc123def .h2 {font-weight:bold}
+	...
+</style>
+<style id="my-form-098fea432">
+	.my-form-098fea432 .item .user:{display:none}
+</style>
+```
+
+First is static and generated from string definitions. If manifest – like in example – has `id`, this `<style>` section generated only once regardless of number of manifest instances running. When last instance dies, this section will be removed.
+
+Second `<style>` section is unique for each manifest’s instance and is generated from rules, defined with functions. They can tune rules according to form size or init data. In example if container is too narrow, no `.user` is shown.
+
+Style section is evaluated before init to ensure init see real geometry of objects it puts to the page.
+
 
 ##Settings
 Below parameters of $.my instance can be tuned for an entire form:
