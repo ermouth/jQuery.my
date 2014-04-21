@@ -5,7 +5,7 @@
   "keywords": [
     "ui", "form", "validation", "data-binding"
   ],
-  "version": "0.9.4",
+  "version": "0.9.5",
   "author": {
     "name": "ermouth",
     "url": "https://github.com/ermouth"
@@ -28,6 +28,6 @@
   "download": "http://jquerymy.com/download/",
   "dependencies": {
     "jquery": ">=1.11.0",
-    "sugarjs": ">=1.4.0",
+    "sugarjs": ">=1.4.1",
   }
 }
