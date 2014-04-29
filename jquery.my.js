@@ -1,33 +1,21 @@
 /*
- * jQuery.my 0.9.5
+ * jQuery.my 0.9.6
  * Requires jQuery 1.11.0+, SugarJS 1.4.0+
  * 
- * Маin сhanges:
+ * Changes:
  * 
- * — Lists of forms now listen to events "remove", "redraw" and "insert":
- * 
- * —— $anyInListElement.trigger("remove") – removes list item elt is in
- *    It’s proxy for $listItem.my("remove").
- * 
- * —— $anyInListElement.trigger("insert", param) – inserts elt into list
- *      param is number    – inserts to abs position in the list
- *      param == "before"  – inserts before caller form
- *      param == "after"   – inserts after caller form
- *      param is {what:{ obj to insert}, where:position }}, 
- *             position is num or before|after –
- *             inserts obj passed to position passed
- *      param is null      – inserts at the end.
- *    It’s proxy for $listItem.my("insert", param).
- *    
- * — $listFormOrElt.my("index") returns form index in the list
+ * — input type=range returns "0", not "" when at zero
+ * — styles rules are applied prior form render to enable
+ *   form plugins to measure pixels right
+ * – json/unjson now preserve numbers (not converted to strings)
  * 
  * More details at jquerymy.com
  * 
  * @ermouth, thanks @carpogoryanin, @ftescht
- * 2014-04-21
+ * 2014-04-29
  */
 
-;(function($) {var _version = "jQuery.my 0.9.5";
+;(function($) {var _version = "jQuery.my 0.9.6";
 	
 	// Some shortcuts and constants
 	var lang = "en", 
@@ -63,7 +51,7 @@
 		if (isS(A1)) {
 			ref=A1, obj = _getref(isO(A2)?A2:forms, ref);	
 			if ("exist"===A2) return isO(obj);
-			return !obj?null:/*obj._self?Object.clone(obj._self,true):*/Object.clone(obj,true);	
+			return !obj?null:Object.clone(obj,true);	
 		} else if (isO(A1)){
 			obj = _putmanifest (A1, A2);
 			if (!isO(obj)) return f.con(obj), null;
@@ -89,7 +77,7 @@
 	
 	function _manifest (manifest, ref) {
 		// Dereferences pointer to form component, 
-		// manifest is calee manifest obj,
+		// manifest is caller manifest obj,
 		// internal function
 		var t, ext;
 		if (isO(ref)) return ref;
@@ -151,6 +139,16 @@
 		if (!root.hasOwnProperty("_src")) root._src={};
 
 		id = obj.id;
+		
+		
+		path = id.split(".").compact(true);
+		
+		// All path parts exept first must be latin caps
+		if (
+			null!=path.slice(2).find(function(e){return /^[^A-Z0-9]/.test(e);})
+			|| (/^[^A-Z]/.test(path[1]))
+		) return "All path parts exept 1st must start with caps/nums.";
+		
 		try {obj=Object.clone(obj0, true);} 
 		catch (e) {return "Can't mount circular-referencing obj.";}
 		
@@ -163,13 +161,6 @@
 		// save it
 		root._src[id] = obj;
 		
-		path = id.split(".").compact(true);
-		
-		// All path parts exept first must be latin caps
-		if (
-			null!=path.slice(2).find(function(e){return /^[^A-Z0-9]/.test(e);})
-			|| (/^[^A-Z]/.test(path[1]))
-		) return "All path parts exept 1st must start with caps/nums.";
 		
 		if (prev=f.mask(root, id)) {
 			if (prev.params && prev.params.protect) return "Can't mount on protected";
@@ -298,7 +289,6 @@
 								if (present[hash[i]]) {
 									var $n = present[hash[i]].detach().appendTo($o);
 									result.push($n.my("data"));
-									//$n.data("formlist").index=i;
 								} else {
 									var $n = $(/\{/.test(tmpl)?tmpl.assign(list[i]):tmpl).appendTo($o);
 									$n.data("formlist",{index:i});
@@ -313,8 +303,6 @@
 									//ToDo – allow it to be async
 									$n.my(
 										_manifest (gen.parent, gen.manifest, list[i], i, list, $o),
-										/*isO(gen.manifest)||isS(gen.manifest)?gen.manifest:
-											isF(gen.manifest)?gen.manifest.call( _form($o).manifest , list[i], i, list, $o):null,*/ 
 										list[i]
 									);
 									result.push($n.my("data"));
@@ -435,7 +423,7 @@
 					if (n(v)) {	
 						$o.each(function(ind) {
 							var val = $(this).val();
-							if (String(v)===String(val)) pos=ind;
+							if ((v+"")===(val+"")) pos=ind;
 						});
 						var jqcheck = $o.eq(0).checkboxradio;
 						if (jqcheck) $o.each(function(ind){
@@ -545,7 +533,7 @@
 	/**/	"div,span,a,p,form,fieldset,li,td,th,h1,h2,h3,h4,h5,h6":{
 				".ui-slider":function ($o, v){
 					if(n(v)) $o.slider("option",$o.slider("option","values")?"values":"value", f.clone(v));
-					return f.clone($o.slider("option","values")||$o.slider("option","value")||"");
+					return f.clone($o.slider("option","values")||$o.slider("option","value")||0);
 				},
 				".ui-buttonset": function ($o,v) {
 				//jQ UI buttonset ()	
@@ -1266,8 +1254,6 @@
 	// called when control is changed
 		var d = $o.my(); 
 		if (d && !d.disabled) {
-			/*if (!d.errors || d.errors.values().join("").length==0 && obj ) 
-				obj.my().lastCorrect = $E(true, {}, d.ddata||d.data);*/
 			_history(d.ddata||d.data, d.dparams||d.params);
 			var $we = $root.find(d.selector),
 				val0 = _field($we,N);
@@ -1283,14 +1269,11 @@
 	// called when control is changed
 		var d = $o.my(); 
 		if (d && !d.disabled) {
-			/*if (!d.errors || d.errors.values().join("").length==0 && obj ) 
-				obj.my().lastCorrect = $E(true, {}, d.ddata||d.data);*/
 			var $we = $root.find(d.selector);
-			_update($o,
+			if (($we).is(".my-form")) $we.my("redraw");
+			else _update($o,
 				($we.is(".my-form-list")?_getref($we.my().data,$we.data("formlist").generator.bind):N),
 				uiNode.recalcDepth||p.recalcDepth);
-			if (d.root.parent().is(".ui-sortable")) d.root.parent().trigger("check");
-			if (p.change) p.change.call($o);
 		}
 	};
 	
@@ -1318,7 +1301,9 @@
 			var n = node[i], t = $.type(n);
 			if (/^(ob|ar)/.test(t)) _unjson(n);
 			else if (t==St && /(^function\s\(|^new\sRegExp)/.test(n)) {
+				try{
 				node[i]=eval('0||('+n+')'); 
+				}catch(e){console.log(e.message, e.stack,n)}
 			}
 			// Fucking IE, it took 8 hours to find this 0|| trick –
 			// it allows IE8 eval functions work as expected
@@ -1505,10 +1490,6 @@
 				}
 			} 
 			
-			//success init finalizer
-			pi.then(function(){
-				$root.addClass("my-form-"+cid+" my-manifest-"+f.sdbmCode(myid));
-			});
 			
 			//extend root with promise methods
 			$.extend($root, pi.promise());
@@ -1532,6 +1513,15 @@
 			
 			manClass = "my-manifest-"+f.sdbmCode(myid);
 			formClass = "my-form-"+cid;
+			
+			$root.addClass(formClass+" "+manClass);
+			
+			//fail init finalizer
+			pi.fail(function(){
+				$root.removeClass(formClass+" "+manClass);
+			});
+			
+			
 			if (manifest.style) {
 				style=_style ($root, manifest, manClass, formClass);
 				if (style && style[0].length) {
@@ -1738,9 +1728,8 @@
 		//###### RESET INITIAL VALUES ######
 		
 		"reset": function () {
-			var o = this.my().root||this;
 			try {
-				f.kickoff(o.my().data, o.my().initial);
+				f.kickoff(this.my().data, this.my().initial);
 				this.my("redraw");
 			} catch (e) {return false;}
 			return true;
@@ -1760,10 +1749,9 @@
 		
 		"remove": function (fromDOM){	
 			var $x = this, $style, $locstyle, d;
-			if (this.my().root) {
+			if (this.my().root && !this.my().ddata) {
 				//child elt requests form removal
 				$x = this.my().root;
-				
 			}
 				
 			d = $x.my().data;
@@ -1862,7 +1850,7 @@
 		"promise" : 	function (fn) {if (isF(fn)) this.my().promise.then(fn); return this.my().promise;},
 		
 		//###### LIST RELATED ######
-		"index":		function () {var o = this.my().root||this; return (o.data("formlist")||{}).index},
+		"index":		function () {var o = (this.my().root && !this.my().ddata)?this.my().root:this; return (o.data("formlist")||{}).index},
 		"insert":		function (where, what) {
 			var src = this.is(".my-form-list")?this:(this.my().root||this),
 				o = src.is(".my-form-list")?src:src.parent(".my-form-list"),
@@ -1989,7 +1977,7 @@
 				var tl=0,a,i,k,l,v,ctab=ctab0||0,xt = tabs;
 				if (tab && isS(tab)) {tl=String(tab).length;xt = String(tab).repeat(10);}
 				switch((typeof w).substr(0,3)){
-					case 'str': return fj(w);case'num':return isFinite(w)?'"'+String(w)+'"':'null';
+					case 'str': return fj(w);case'num':return isFinite(w)?''+String(w)+'':'null';
 					case 'boo': case'nul':return String(w); 
 					case 'fun': return fj(w.toString().replace(/^(function)([^\(]*)(\(.*)/,"$1 $3").replace(/(})([^}]*$)/,'$1'));
 					case 'obj': if(!w) return'null';
@@ -2321,8 +2309,8 @@
 
 //#############################################################################################
 
-/* jQuery.my.modal 0.3
- * Requires Suager 1.4.1+, jQuery 1.9+, $.my 0.9.1+
+/* jQuery.my.modal 0.4
+ * Requires Sugar 1.4.1+, jQuery 1.11+, $.my 0.9.5+
  * 
  * Modal dialog constructor/manager. Singleton, allows only one instance of popup.
  * Returns promise, which is resolved on dialog normal close or rejected if modal fails to init.
@@ -2339,7 +2327,8 @@
  * 				manifest: formManifest Object,
  * 				data: initialData Object or none,
  * 				width: formWidth Number or none,
- * 				done: callback Function (formErrors, data) or none
+ * 				done: callback Function (formErrors, data) or none,
+ * 				esc: false, enables/disables close on escape keypress
  * 			}
  * 			will raise modal with $.my form inside. Form must call $.my.modal(false) or emit
  * 			"commit" event on itself to close with sendind data. Calling $.my.modal(true) or 
