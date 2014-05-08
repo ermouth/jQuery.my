@@ -791,33 +791,34 @@
 	
 	
 	//=======================================
-	
+
 	function _validate (data,val, uiNode, $formNode) {
-	//checks if val fails to meet uiNode.check condition			
-		var i="", pat = uiNode.check, err="", syserr="", msg, v ;
+	//checks if val fails to meet uiNode.check condition
+		var pat = uiNode.check;
 		if (pat != N) {
-			msg = _form($formNode).params.messages;
-			err = uiNode["error"],
-			err0 = err||msg.patternMismatch||msg[""]||"Error";
-			
-			if ($formNode[0].hasOwnProperty("validity") && !$formNode[0].validity.valid) {
-				syserr=$formNode[0].validationMessage+"";
+			var msg = _form($formNode).params.messages,
+				err = uiNode["error"],
+				err0 = err||msg.patternMismatch||msg[""]||"Error";
+
+			if($formNode.size() && Object.prototype.hasOwnProperty.call($formNode[0],"validity") && !$formNode[0].validity.valid) {
+				var syserr=$formNode[0].validationMessage+"";
 				if (syserr!=="") return syserr.substr(0,1).toUpperCase()+syserr.substr(1);
 				else {
-					v = $formNode[0].validity;
+					var v = $formNode[0].validity,
+						i;
 					for (i in v) if (syserr==="" && i!="valid" && isB(v[i]) && v[i]) {
 						if (msg[i]) syserr=msg[i];
-					};
+					}
 					return syserr||err;
 				}
 			}
-			
+
 			switch($.type(pat).to(1)){
-				case "f": 	return pat.call(_form($formNode).manifest, data, val, $formNode);
+				case "f":	return pat.call(_form($formNode).manifest, data, val, $formNode);
 				case "r":	return ( (pat.test(String(val))) ? "":err0 );
-				case "a": 	return ( (pat.indexOf(val)>-1)?"":err0);				
-				case "s": 	return (val==pat?"":err0);
-				case "o":  	return pat[val]?"":err0;	
+				case "a":	return ( (pat.indexOf(val)>-1)?"":err0);
+				case "s":	return (val==pat?"":err0);
+				case "o":	return pat[val]?"":err0;
 				case "b":	{
 					if ($formNode.is(".my-form-list,.ui-sortable")) {
 						var sel = $formNode.data("listSrc")||$formNode.data("my").listSrc||">*", ret={};
@@ -836,7 +837,8 @@
 				}
 			}
 			return msg.formError||"Error";
-		} else return "";
+		}
+		return "";
 	};
 	
 	
