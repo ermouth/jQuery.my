@@ -20,7 +20,7 @@ jQuery.my requires jQuery 1.11+ and [SugarJS 1.4.0+](http://sugarjs.com/).
 ```html
 <script src="/js/sugar.min.js"></script>
 <script src="/js/jquery.min.js"></script>
-<script src="/js/jquerymy-0.9.6.min.js"></script>
+<script src="/js/jquerymy-0.9.7.min.js"></script>
 ```
 ##Quick start 
 ```js
@@ -119,7 +119,7 @@ $("#form").my({
 	}
 });
 ```
-Messages returned by validator are put into DOM element with class `.my-error-tip` which must be located inside the control’s container. So to make messages visible we must explicitly add this element into html. If no such elemnt found error message will be added as `title` attribute to the control itself. If control has own `title` it is stashed until error corrected. 
+Messages returned by validator are put into DOM element with class `.my-error-tip`, which must be located inside the control’s container. So to make messages visible we must explicitly add this element into html. If no such elemnt found error message will be added as `title` attribute to the control itself. If control has own `title` it is stashed until error corrected. 
 ```html
 <div>
 	<input id="name" type="text" />
@@ -127,7 +127,7 @@ Messages returned by validator are put into DOM element with class `.my-error-ti
 </div>
 ```	
 ####Checking entire form has no errors
-`$("#form").my("errorrs")` returns object, which keys are invalid fields and their values are error messages. If all the fields are ok `{}` is returned. If form has child forms their errors will be located inside appropriate branch, so error object maps to full error tree.
+`$("#form").my("errors")` returns object, which keys are invalid fields and their values are error messages. If all the fields are ok, `{}` is returned. If form has child forms, their errors are mapped to appropriate branch.
 
 To spot whether entire data is valid or not call `$("#form").my("valid")`.
 	
@@ -151,7 +151,7 @@ $("#form").my({
 ```
 Product is not mapped to data – `.bind` function does not save anything. It only returns value to put in `#product` DOM element. Every time `#factor1` or `#factor2` receive input `#product` is recalculated.
 
-There is another syntax to define dependecies.
+There is another syntax to define dependencies.
 ```js
 $("#form").my({
 	ui:{
