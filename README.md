@@ -13,6 +13,8 @@ jQuery.my also incorporates simple template engine and modal dialog mechanics, w
 
 See [jquerymy.com/api](http://jquerymy.com/api) for more detailed API, examples and list of compatible controls.
 
+See [cloudwall.me](http://cloudwall.me) as an example of web-app platform built on top of $.my.
+
 ##Setup
 
 jQuery.my requires jQuery 1.11+ and [SugarJS 1.4.0+](http://sugarjs.com/). 
