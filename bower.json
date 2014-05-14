@@ -1,0 +1,39 @@
+{
+  "name": "jquerymy",
+  "version": "0.9.8",
+  "description": "jQuery plugin that binds HTML with JS objects in real-time.",
+  "main": "./jquerymy.js",
+  "authors": [
+  	"ermouth <ermouth@gmail.com>",
+  	"ftescht <dasiderk@gmail.com>",
+  	"dander <carpogoryanin@gmail.com>"
+  ],
+ "repository" : {
+    "type": "git",
+    "url": "https://github.com/ermouth/jQuery.my.git"
+  },
+
+  "keywords": [
+    "MVVM",
+    "framework",
+    "plugin",
+    "jquery",
+    "ui",
+    "data binding"
+  ],
+  
+  "dependencies": {
+  	"jquery":"~1.11",
+  	"sugar":"~1.4"
+  },
+  
+  "ignore":[
+  	"*.json",
+  	"Release/**"
+  ],
+  
+  "license": "MIT",
+  "scripts": [
+    "./jquerymy.js"
+  ]
+}

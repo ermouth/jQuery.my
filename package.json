@@ -1,0 +1,24 @@
+{
+  "name": "jquerymy",
+  "version": "0.9.8",
+  "description": "jQuery plugin that binds HTML with JS objects in real-time.",
+  "homepage": "http://jquerymy.com/",
+  "author": "ermouth <ermouth@gmail.com>",
+  "main": "./jquerymy.js",
+
+  "repository" : {
+    "type": "git",
+    "url": "https://github.com/ermouth/jQuery.my.git"
+  },
+  
+  "bugs": {
+    "url": "https://github.com/ermouth/jQuery.my/issues"
+  },
+  
+  "dependencies": {
+  	"jquery":"~1.11",
+  	"sugar":"~1.4"
+  },
+  
+  "license": "MIT"
+}

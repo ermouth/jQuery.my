@@ -1,11 +1,11 @@
 {
   "name": "my",
   "title": "jQuery.my",
-  "description": "jQuery plugin for bi-directional real time binding HTML controls values with javascript objects.",
+  "description": "jQuery plugin that binds HTML with JS objects in real-time.",
   "keywords": [
     "ui", "form", "validation", "data-binding"
   ],
-  "version": "0.9.6",
+  "version": "0.9.8",
   "author": {
     "name": "ermouth",
     "url": "https://github.com/ermouth"
@@ -13,8 +13,7 @@
   "maintainers": [
     {
       "name": "ermouth",
-      "email": "ermouth@gmail.com",
-      "url": "http://ermouth.com"
+      "email": "ermouth@gmail.com"
     }
   ],
   "licenses": [
@@ -28,6 +27,6 @@
   "download": "http://jquerymy.com/download/",
   "dependencies": {
     "jquery": ">=1.11.0",
-    "sugarjs": ">=1.4.1",
+    "sugarjs": ">=1.4.0",
   }
 }

@@ -1,21 +1,20 @@
 /*
- * jQuery.my 0.9.7
+ * jQuery.my 0.9.8
  * Requires jQuery 1.11.0+, SugarJS 1.4.0+
  * 
  * Changes:
  * 
- * — $obj.my("remove") now accurately unbinds rih plugins and nested forms
- * — modal calculates image width/heights in more accurate way
- * – validator of native form errors works fine in IE8
- * – 
+ * — fixed issues with list items silent removal
+ * – checkboxes now work correct when clicked repeatedly
+ * – buttons value setter issue fixed
  * 
  * More details at jquerymy.com
  * 
  * @ermouth, thanks @carpogoryanin, @ftescht
- * 2014-05-09
+ * 2014-05-14
  */
 
-;(function($) {var _version = "jQuery.my 0.9.7";
+;(function($) {var _version = "jQuery.my 0.9.8";
 	
 	// Some shortcuts and constants
 	var lang = "en", 
@@ -308,6 +307,7 @@
 									result.push($n.my("data"));
 								}
 							}
+							(function(){$o.trigger(Ch);}).delay();
 							return result;
 						}
 					}
@@ -394,7 +394,7 @@
 				return (d!=""?Date.create(d).format(h24):"");
 			},
 			
-	/**/	"input,button":{
+	/**/	"input":{
 				"[type='text'],[type='number'],[type='search'],[type='hidden'],[type='password'],[type='button'],[type='range'],:not([type])":{
 				//nearly all main input types and button
 				
@@ -429,15 +429,15 @@
 						if (jqcheck) $o.each(function(ind){
 								var $x = $(this);
 								if (pos!=ind && $x.is(":checked")) 
-									$x.attr("checked",false).checkboxradio("refresh");
+									$x.prop("checked",false).checkboxradio("refresh");
 							});						
 						if (pos>-1) {
 							var $x = $o.eq(pos);
 							if (!$x.is(":checked")) {
-								$x.attr("checked",true);
+								$x.prop("checked",true);
 								if (jqcheck) $x.checkboxradio("refresh");
 							}
-						} else if (!jqcheck) $o.each(function(){ $(this).attr("checked",false); });
+						} else if (!jqcheck) $o.each(function(){ $(this).prop("checked",false); });
 					} 
 					if (pos==-1) for (var ind=0; ind<$o.size(); ind++) {
 						if ($o.eq(ind).is(":checked")) pos=ind;
@@ -455,8 +455,8 @@
 							var $x = $(this), val = $x.val(), on = $x.is(":checked");
 							if (v.indexOf(val)!=-1) {
 								a.push(val);
-								if (!on) $x.attr("checked", true);
-							} else if (on) $x.attr("checked", false);
+								if (!on) $x.prop("checked", true);
+							} else if (on) $x.prop("checked", false);
 							if (jqcheck) $x.checkboxradio("refresh");
 						});
 					} else {
@@ -1105,10 +1105,11 @@
 					else lsel = ui.list||lsel;
 					if (!ltmpl) {
 						var $t0 = $o.find(lsel);
+						ltmpl='<div></div>';
 						if ($t0.size()) {
 							ltmpl = $(ltmpl).append($t0.eq(0).clone(true)).html();
 							$t0.eq(0).remove();
-						} else ltmpl='<div></div>';
+						}
 					}
 					
 					//mount data
@@ -1364,6 +1365,9 @@
 				list = list.compact(true).unique();
 			}
 			if (list.length) ui[i].recalc=list;
+			
+			if (null==v.bind) v.bind=function(){};
+			
 			if (v.watch) {
 				if (isS(v.watch)) watch = v.watch.split(re);
 				else if (isA(v.watch)) watch = v.watch.slice(0);
@@ -1819,7 +1823,11 @@
 				});
 			}
 			
-			if (($o.data("formlist") && $o.is(".my-form"))|| fromDOM) $o.remove();
+			if (($o.data("formlist") && $o.is(".my-form"))|| fromDOM) {
+				var $p = $o.parents(".my-form-list").eq(0);
+				$o.remove();
+				$p.trigger("check")
+			}
 			else {
 				$o.removeData("formlist")
 				.removeData("myval")
