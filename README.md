@@ -22,7 +22,7 @@ jQuery.my requires jQuery 1.11+ and [SugarJS 1.4.0+](http://sugarjs.com/).
 ```html
 <script src="/js/sugar.min.js"></script>
 <script src="/js/jquery.min.js"></script>
-<script src="/js/jquerymy-0.9.7.min.js"></script>
+<script src="/js/jquerymy.min.js"></script>
 ```
 ##Quick start 
 ```js
