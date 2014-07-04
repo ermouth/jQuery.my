@@ -11,7 +11,7 @@ Forms are promises – any `.init` function can return promise instead of `undef
 
 jQuery.my also incorporates simple template engine and modal dialog mechanics, which also behaves as promise.
 
-See [jquerymy.com/api](http://jquerymy.com/api) for more detailed API, examples and list of compatible controls.
+See [jquerymy.com/](http://jquerymy.com/) for more detailed API, examples and list of compatible controls.
 
 See [cloudwall.me](http://cloudwall.me) as an example of web-app platform built on top of $.my.
 
