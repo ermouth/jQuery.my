@@ -1,6 +1,6 @@
 {
   "name": "jquerymy",
-  "version": "0.9.8",
+  "version": "0.9.9",
   "description": "jQuery plugin that binds HTML with JS objects in real-time.",
   "homepage": "http://jquerymy.com/",
   "author": "ermouth <ermouth@gmail.com>",

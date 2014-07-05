@@ -5,7 +5,7 @@
   "keywords": [
     "ui", "form", "validation", "data-binding"
   ],
-  "version": "0.9.8",
+  "version": "0.9.9",
   "author": {
     "name": "ermouth",
     "url": "https://github.com/ermouth"
@@ -16,17 +16,14 @@
       "email": "ermouth@gmail.com"
     }
   ],
-  "licenses": [
-    {"type": "MIT", "url": "http://jquerymy.com/home/license" },
-    {"type": "GPL", "url": "http://jquerymy.com/home/license" }
-  ],
+  "licenses": ["GPL"],
   "bugs": "https://github.com/ermouth/jQuery.my/issues",
   "homepage": "http://jquerymy.com/",
-  "docs": "http://jquerymy.com/api/",
-  "demo": "http://jquerymy.com/api/demos/",
-  "download": "http://jquerymy.com/download/",
+  "docs": "http://jquerymy.com/api.html",
+  "demo": "http://jquerymy.com/#CW-demos",
+  "download": "http://jquerymy.com/download.html",
   "dependencies": {
     "jquery": ">=1.11.0",
-    "sugarjs": ">=1.4.0",
+    "sugarjs": "~1.4.0",
   }
 }

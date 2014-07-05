@@ -1,7 +1,7 @@
 {
   "name": "jquerymy",
-  "version": "0.9.8",
-  "description": "jQuery plugin that binds HTML with JS objects in real-time.",
+  "version": "0.9.9",
+  "description": "jQuery plugin that binds HTML with JS objects in real time.",
   "main": "./jquerymy.js",
   "authors": [
   	"ermouth <ermouth@gmail.com>",
@@ -28,11 +28,12 @@
   },
   
   "ignore":[
-  	"*.json",
+  	"package.json",
+  	"my.jquery.json",
   	"Release/**"
   ],
   
-  "license": "MIT",
+  "license": "GPL-3.0",
   "scripts": [
     "./jquerymy.js"
   ]
