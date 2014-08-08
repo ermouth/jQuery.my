@@ -16,7 +16,12 @@
       "email": "ermouth@gmail.com"
     }
   ],
-  "licenses": ["GPL"],
+  "licenses": [
+  	{
+  		"type":"GPLv3",
+  		"url":"http://www.gnu.org/copyleft/gpl.html"
+  	}
+  ],
   "bugs": "https://github.com/ermouth/jQuery.my/issues",
   "homepage": "http://jquerymy.com/",
   "docs": "http://jquerymy.com/api.html",
@@ -24,6 +29,6 @@
   "download": "http://jquerymy.com/download.html",
   "dependencies": {
     "jquery": ">=1.11.0",
-    "sugarjs": "~1.4.0",
+    "sugarjs": "~1.4.0"
   }
 }
