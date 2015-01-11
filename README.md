@@ -449,7 +449,7 @@ var manifest = {
 	ui:{...}
 };
 ```
-Full set of settings is quite long, they are listed and explained at [jquerymy.com/api/params](http://jquerymy.com/api/params/)
+Full set of settings is quite long, they are listed and explained at [jquerymy.com/api.html](http://jquerymy.com/api.html#CW-settings)
 
 ##Compatibility
 Works fine on IE9+ and other browsers.
