@@ -5,6 +5,17 @@
   "homepage": "http://jquerymy.com/",
   "author": "ermouth <ermouth@gmail.com>",
   "main": "./jquerymy.js",
+  
+  "keywords": [
+    "MVVM", 
+    "framework", 
+    "ui", 
+    "form", 
+    "validation", 
+    "data binding",
+    "jquery-plugin",
+    "ecosystem:jquery"
+  ],
 
   "repository" : {
     "type": "git",
