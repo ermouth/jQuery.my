@@ -1,5 +1,12 @@
-#jQuery.my
-[__Get/set data__](#retrieving-and-updating-data) – [__Validation__](#validation) – [__Dependencies__](#dependencies) – [__Conditional formatting__](#conditional-formatting-and-disabling) – [__Form init__](#init-functions) – [__Nested forms__](#nested-and-repeated-forms) – [__Styling forms__](#styling-forms)
+jQuery.my
+=========
+* [__Get/set data__](#retrieving-and-updating-data) 
+* [__Validation__](#validation) 
+* [__Dependencies__](#dependencies)
+* [__Conditional formatting__](#conditional-formatting-and-disabling) 
+* [__Form init__](#init-functions) 
+* [__Nested forms__](#nested-and-repeated-forms) 
+* [__Styling forms__](#styling-forms)
 
 __jQuery.my is a plugin that binds HTML controls with underlying javascript object using declarative MVVM style manifest. Bindings are bi-directional and real-time.__
 
@@ -11,11 +18,12 @@ Forms are promises – any `.init` function can return promise instead of `undef
 
 jQuery.my also incorporates simple template engine and modal dialog mechanics, which also behaves as promise.
 
-See [jquerymy.com/](http://jquerymy.com/) for more detailed API, examples and list of compatible controls.
+See [jquerymy.com](http://jquerymy.com/) for more detailed API, examples and list of compatible controls.
 
 See [cloudwall.me](http://cloudwall.me) as an example of web-app platform built on top of $.my.
 
-##Setup
+Setup
+-----
 
 jQuery.my requires jQuery 1.11+ and [SugarJS 1.4.0+](http://sugarjs.com/). 
 
@@ -24,7 +32,11 @@ jQuery.my requires jQuery 1.11+ and [SugarJS 1.4.0+](http://sugarjs.com/).
 <script src="/js/jquery.min.js"></script>
 <script src="/js/jquerymy.min.js"></script>
 ```
-##Quick start 
+$.my can can be installed from npm – `npm install jquerymy`, same for bower.
+
+Quick start 
+-----
+
 ```js
 var person={};
 var manifest = {
@@ -47,12 +59,16 @@ Now form inputs are filled with init values and any interaction with controls im
 
 First param passed to $.my is denoted below as __manifest__.
 
-##Retrieving and updating data
+Retrieving and updating data
+-----
+
 __To get__ form data just read value of the `person` variable or read `$("#form").my("data")`. Second way is good if $.my was initialized without any init value passed. 
 
 __To put__ new data into already initialized instance of $.my call `$("#form").my("data", {name: "Mike"})`. Note you can update data partially. Form is redrawn and revalidated after applying new data .
 
-##More complex data bind
+More complex data bind
+-----
+
 The `.bind` field can be defined as a bi-directional function. It receives entire data object and new value as params. 
 If `null` is passed function must only return value for DOM control, otherwise function must put value into 
 data object and then return value for DOM.
@@ -77,7 +93,9 @@ Note bind function in example won't allow to input anything than number. Pressin
 
 Third param `$control` is jQuery reference to the control being processed, it can be useful for navigating over form. Calling `$control.my("find", "#name")` returns `#name` control for example. 
 
-##Validation
+Validation
+-----
+
 There are several ways to validate data received from control. Validator can be a regexp or a function. Functions unlike regexps can return custom error messages depending on value being checked. Check is performed just _before_ executing `.bind`.
 
 If value is incorrect `.my-error` class is applied to the closest DOM container of the control, otherwise this style rule is removed. 
@@ -133,7 +151,9 @@ Messages returned by validator are put into DOM element with class `.my-error-ti
 
 To spot whether entire data is valid or not call `$("#form").my("valid")`.
 	
-##Dependencies
+Dependencies
+-----
+
 Let it be a form that calculates product of two values. We need to recalculate product each time any of factors changes.
 ```js
 $("#form").my({
@@ -173,7 +193,9 @@ It behaves the same way. Note that `.recalc` is processed prior to `.watch`. So 
 
 Loop dependencies are resolved correctly.
 
-##Conditional formatting and disabling
+Conditional formatting and disabling
+-----
+
 $.my can apply different classes depending on data object state.
 ```js
 $("#form").my({
@@ -202,7 +224,9 @@ Input `#age` depends on value of `#name` field and is disabled if `data.name` is
 
 Conditional formatting over appropriate field is applied after `.check` and `.bind`.
 
-##Init functions
+Init functions
+-----
+
 ####Preparing form during initialization
 If underlying form is just a HTML carcass it's good idea to enrich it during $.my instance initialization without any code outside the manifest.
 ```js
@@ -257,7 +281,9 @@ jQuery AJAX implementation returns promise, so we may return `$.ajax` result dir
 
 Promises are new to community and yet have no strict standard – so to simplify code `$.Deferred()` model is used inside jQuery.my. 
 
-##Nested and repeated forms
+Nested and repeated forms
+-----
+
 Each DOM node which was instantiated with $.my can act as a single control for some parent $.my form. DOM node `#child` is instantiated with own manifest in example. 
 ```js
 $("#form")
@@ -310,7 +336,9 @@ $("#form")
 })
 ````
 
-##Tuning behavior
+Tuning behavior
+-----
+
 ####Events
 $.my understands many types of controls and automatically selects appropriate event handler(s) to provide real-time binding. It’s a kind of device driver for different plugins and conventional HTML inputs or noninteractive elements.
 
@@ -347,7 +375,9 @@ $("#form").my({
 In this example `.bind` starts only after last event within 150ms. If change events are raised more often then one in 150ms, they are supressed. See [live demo](http://jquerymy.com/s/delay078.html) – its much more clear than description.
 
 
-##Reusable code snippets
+Reusable code snippets
+-----
+
 Some functions or fields inside manifest can contain code with matching fragments. It can be same regexps for different fields, or some dictionaries used here and there etc. They can be stored at manifest's root and acessed from `ui` section members by reference.
 ```js
 $("#form").my({
@@ -373,7 +403,9 @@ $("#form").my({
 Not only checks but every function defined in `.ui` section receives `this` pointing to runtime manifest. Functions located on the first level of manifest (`SomeFunction` in example above) also receive `this` pointing to runtime. 
 
 
-##Manifest delivery
+Manifest delivery
+-----
+
 There is buil-in method to convert manifest with functions and regexps into conventional JSON. It's useful for on-demand manifest delivery using ajax calls. `$.my.tojson(manifest)` 
 returns correct JSON-encoded string with all functions and regexps converted to strings.
 
@@ -389,7 +421,9 @@ Method `$.my.fromjson(someJSON)` unwinds encoded functions and regexps into full
 
 There is no need to decipher encoded manifests before passing them to $.my – they are unwinded automatically.
 
-##Styling forms
+Styling forms
+-----
+
 Manifest can contain `style` property that defines hierarchy of css rules for form instance. Some rules can be static and other calculated according to form’s init data.
 ```js
 {
@@ -434,7 +468,9 @@ Second `<style>` section is unique for each manifest’s instance and is generat
 Style section is evaluated before init to ensure init see real geometry of objects it puts to the page.
 
 
-##Settings
+Settings
+-----
+
 Below parameters of $.my instance can be tuned for an entire form:
 ```js
 var manifest = {
@@ -451,5 +487,7 @@ var manifest = {
 ```
 Full set of settings is quite long, they are listed and explained at [jquerymy.com/api.html](http://jquerymy.com/api.html#CW-settings)
 
-##Compatibility
-Works fine on IE9+ and other browsers.
+Compatibility
+-----
+Works fine on IE9+ and other browsers. IE8 is also supported, but apps require thorough testing 
+and optimizations to avoid lags.
