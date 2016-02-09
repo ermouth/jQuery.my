@@ -102,7 +102,7 @@ If value is incorrect `.my-error` class is applied to the closest DOM container 
 
 If control is not interactive – we bind some data with `<div>` element for example – `.my-error` class is applied to the element itself, not container.
 
-####RegExp validation
+#### RegExp validation
 ```js
 $("#form").my({
 	ui:{
@@ -117,7 +117,7 @@ $("#form").my({
 ```
 If user puts something other than 10-letter combination into `#name` input, `class` attribute of the parent `<div>` is set to `.my-error`. 
 
-####Validating with function
+#### Validating with function
 Validator function receives same params as `.bind` but executed before bind. Validator must return error message string – or empty string if value is ok.
 
 Unlike `.bind` validator is never called with `value` equal to `null`, it always receives real value.
@@ -146,7 +146,7 @@ Messages returned by validator are put into DOM element with class `.my-error-ti
 	<span class="my-error-tip"></span>
 </div>
 ```	
-####Checking entire form has no errors
+#### Checking entire form has no errors
 `$("#form").my("errors")` returns object, which keys are invalid fields and their values are error messages. If all the fields are ok, `{}` is returned. If form has child forms, their errors are mapped to appropriate branch.
 
 To spot whether entire data is valid or not call `$("#form").my("valid")`.
@@ -227,7 +227,7 @@ Conditional formatting over appropriate field is applied after `.check` and `.bi
 Init functions
 -----
 
-####Preparing form during initialization
+#### Preparing form during initialization
 If underlying form is just a HTML carcass it's good idea to enrich it during $.my instance initialization without any code outside the manifest.
 ```js
 $("#form").my({
@@ -249,7 +249,7 @@ Here we apply jQuery.UI Slider plugin over `#range` control. Data attribute `ran
 
 Certainly HTML carcass itself can be generated using `init` function, placed as child of manifest's root – as in above example. 
 
-####Async init
+#### Async init
 To become async `.init` function must return promise of any sort (so-called ‘then-able’). Initialization sequence continues when promise is resolved or fails if promise is rejected.
 
 ```js
@@ -339,7 +339,7 @@ $("#form")
 Tuning behavior
 -----
 
-####Events
+#### Events
 $.my understands many types of controls and automatically selects appropriate event handler(s) to provide real-time binding. It’s a kind of device driver for different plugins and conventional HTML inputs or noninteractive elements.
 
 But sometimes you need no realtime response – in case of buttons or links for example. Bind function must be executed only when button is really clicked, not while initializing. 
@@ -358,7 +358,7 @@ $("#form").my({
 });
 ```
 The `events` attribute here defines that bind executed after click or doubleclick events on `#button` element. Note `.bind` returns `undefined` here – this syntax allows us to keep control's content intact. 
-####Delays
+#### Delays
 There are several cases bind function must have kind of an anti-jitter. If control is jQuery.UI Slider or conventional HTML5 `<input type="range">` it’s reasonable to exec `.bind` when slider stops. 
 Complex bind function executed every pixel slider moves can be real CPU and RAM hog.
 
@@ -425,7 +425,7 @@ Styling forms
 -----
 
 Manifest can contain `style` property that defines hierarchy of css rules for form instance. Some rules can be static and other calculated according to form’s init data.
-```js
+```javascript
 {
 	id:"ManifestId",
 	data:{...},
@@ -449,6 +449,7 @@ Manifest can contain `style` property that defines hierarchy of css rules for fo
 }
 ```
 Syntax is more or less straightforward. Note spaces before most rules. Above example will be rendered in two `<style>` sections. 
+
 ```html
 <style id="my-manifest-abc123def">
 	.my-manifest-abc123def .red:{color:#c02}
