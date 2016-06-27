@@ -5,7 +5,7 @@
   "keywords": [
     "MVVM", "framework", "ui", "form", "validation", "data binding"
   ],
-  "version": "1.2.5",
+  "version": "1.2.6",
   "author": {
     "name": "ermouth",
     "url": "https://github.com/ermouth"
@@ -28,7 +28,7 @@
   "demo": "http://jquerymy.com/#CW-demos",
   "download": "http://jquerymy.com/download.html",
   "dependencies": {
-    "jquery": ">=1.11.0",
+    "jquery": "~2",
     "sugarjs": "~1.4.0"
   }
 }

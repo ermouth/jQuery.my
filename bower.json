@@ -1,6 +1,6 @@
 {
   "name": "jquerymy",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "description": "A lightweight jQuery plugin for complex two-way data binding in real time.",
   "main": "./jquerymy.js",
   "authors": [
@@ -21,7 +21,7 @@
   ],
   
   "dependencies": {
-  	"jquery":"~1.11",
+  	"jquery":"~2",
   	"sugar":"~1.4"
   },
   
