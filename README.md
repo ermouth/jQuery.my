@@ -1,5 +1,8 @@
 jQuery.my
 =========
+
+Below API description is not complete, see [jquerymy.com](http://jquerymy.com/) for more detailed API, examples and list of compatible controls.
+
 * [__Get/set data__](#retrieving-and-updating-data) 
 * [__Validation__](#validation) 
 * [__Dependencies__](#dependencies)
@@ -18,14 +21,12 @@ Forms are promises – any `.init` function can return promise instead of `undef
 
 jQuery.my also incorporates simple template engine and modal dialog mechanics, which also behaves as promise.
 
-Below API description is not complete, see [jquerymy.com](http://jquerymy.com/) for more detailed API, examples and list of compatible controls.
-
 See [cloudwall.me](http://cloudwall.me) as an example of web-app platform built on top of $.my.
 
 Setup
 -----
 
-jQuery.my requires jQuery 1.11+ and [SugarJS 1.4.0+](http://sugarjs.com/). 
+jQuery.my requires jQuery 2.0+ and [SugarJS 1.3.9–1.4.1](http://sugarjs.com/). 
 
 ```html
 <script src="/js/sugar.min.js"></script>
