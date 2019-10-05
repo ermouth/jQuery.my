@@ -56,7 +56,7 @@ var manifest = {
 // Init $.my
 $("#form").my(manifest, person);
 ```	
-Now form inputs are filled with init values and any interaction with controls immidiately mutates `person` object. Dot notation of deep-level bindings is just syntax sugar. It also can be used with arrays in style like `someArray.1`.
+Now form inputs are filled with init values and any interaction with controls immediately mutates `person` object. Dot notation of deep-level bindings is just syntax sugar. It also can be used with arrays in style like `someArray.1`.
 
 First param passed to $.my is denoted below as __manifest__.
 
@@ -90,7 +90,7 @@ $("#form").my({
 	}
 }, person);
 ```
-Note bind function in example won't allow to input anything than number. Pressing non-num key will do nothing with input, non-num chars are stripped immidiately.
+Note bind function in example won't allow to input anything than number. Pressing non-num key will do nothing with input, non-num chars are stripped immediately.
 
 Third param `$control` is jQuery reference to the control being processed, it can be useful for navigating over form. Calling `$control.my("find", "#name")` returns `#name` control for example. 
 
@@ -261,7 +261,7 @@ $("#form")
 		var promise = $.ajax({
 			url:"http://some.url"
 		}).then(function (res) {
-			// We received responce, gen form HTML
+			// We received response, gen form HTML
 			$node.html('<input id="name" type="text"/>')
 			// Assume res is string, mount default data
 			runtime.data.name = res;
