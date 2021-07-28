@@ -406,16 +406,6 @@
             return $o.select2("val");
           }
         },
-        ".select2-hidden-accessible":{
-           "[multiple]": function ($o, v) {
-             if (n(v)) $o.val((isA(v)?v:[v])).trigger("change");
-              return $o.val();
-            },
-            "":function ($o, v) {
-              if (n(v)) $o.val(v+"").trigger("change");
-              return $o.val();
-            }
-          },
         "[multiple]": function ($o,v) {
           if (n(v)) {
             $o.val(v,[]);
@@ -563,7 +553,7 @@
       ".ui-draggable":"drag.my dragstop.my check.my",
       "a, .pseudolink, input[type=button], button": "click.my",
       "img, :radio, :checkbox": "click.my check.my",
-      "div.select2-container+input,div.select2-container+select,.select2-hidden-accessible":"change.my check.my input.my",
+      "div.select2-container+input,div.select2-container+select":"change.my check.my input.my",
       ".ui-buttonset,input, select, textarea":
       "blur.my change.my check.my"+(navigator.appName.to(5)==="Micro"?" keyup.my":" input.my"),
       "":"check.my"
@@ -606,7 +596,7 @@
       ".ui-buttonset": function (x,$o) {_jquix($o,"buttonset",x);},
       ".hasDatepicker": function (x,$o) {_jquix($o,"datepicker",x);},
       ".my-form":function (x,$o){$o.my("disabled", !!x);},
-      "div.select2-container+input,div.select2-container+select,.select2-hidden-accessible":
+      "div.select2-container+input,div.select2-container+select":
       function (x,$o) {_jquix($o,"select2",x);},
       ".my-cleditor": function (x,$o) { $o.cleditor()[0].disable(!!x);},
       "": function (x, $o) {$o.attr("disabled", !!x);}
@@ -640,7 +630,6 @@
       },
       "div.select2-container+input,div.select2-container+select":
       function ($o){$o.select2('destroy');},
-      ".select2-hidden-accessible": function($o){$o.destroy();},
       ".my-form": function ($o) {$o.my("remove");},
       "textarea": {
         ".my-codemirror": function ($o) {
