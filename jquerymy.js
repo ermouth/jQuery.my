@@ -3229,7 +3229,7 @@
           
           isList = $o.hasClass("my-form-list");
           
-          if (err=="" && (isForm || $box.hasClass(ec))) {
+          if (err=="" && (isForm || isList || $box.hasClass(ec))) {
             if (!isForm) xdata.errors[selector]= "";
             else xdata.derrors[selector]= "";
             $box.removeClass(ec);
