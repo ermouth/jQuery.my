@@ -1,7 +1,7 @@
 jQuery.my
 =========
 
-Below API description is not complete, see [jquerymy.com](http://jquerymy.com/) for more detailed API, examples and list of compatible controls.
+Below API description is not complete, see [jquerymy.com](http://jquerymy.com) for more detailed API, examples and list of compatible controls.
 
 * [__Get/set data__](#retrieving-and-updating-data) 
 * [__Validation__](#validation) 
@@ -11,22 +11,20 @@ Below API description is not complete, see [jquerymy.com](http://jquerymy.com/) 
 * [__Nested forms__](#nested-and-repeated-forms) 
 * [__Styling forms__](#styling-forms)
 
-__jQuery.my is a plugin that binds HTML controls with underlying javascript object using declarative MVVM style manifest. Bindings are bi-directional and real-time.__
+__jquerymy is a plugin for complex reactive two-way data binding between DOM and nested JS state objects.__
 
-jQuery.my recognizes standard HTML controls as well as composite controls rendered by jQuery Mobile, nearly all jQuery UI widgets, Redactor, Ace, CodeMirror, Select2 and others. 
+jquerymy recognizes standard HTML controls as well as composite controls rendered by jQuery Mobile, nearly all jQuery UI widgets, Redactor, Ace, CodeMirror, Select2 and others. 
 
-Comprehensive validation, conditional formatting and dependencies resolution are available. Forms can be nested – each $.my instance can be used as control for a parent form if any.
+jquerymy provides comprehensive validation, conditional formatting and dependencies resolution. Apps can be nested – each $.my instance can be used as control in a parent form, if any.
 
-Forms are promises – any `.init` function can return promise instead of `undefined` and become async.
+jquerymy also incorporates simple template engine and modal dialog mechanics.
 
-jQuery.my also incorporates simple template engine and modal dialog mechanics, which also behaves as promise.
-
-See [cloudwall.me](http://cloudwall.me) as an example of web-app platform built on top of $.my.
+See [cloudwall.me](https://cloudwall.me) as an example of web-app platform built on top of $.my. Also good example of a very large jquerymy app is [Photon](https://github.com/ermouth/couch-photon), an unofficial administrative panel for CouchDB. 
 
 Setup
 -----
 
-jQuery.my requires jQuery 2.0+ and [SugarJS 1.3.9–1.4.1](http://sugarjs.com/). 
+jQuery.my requires jQuery 2.0+ and [SugarJS 1.3.9–1.4.1](https://sugarjs.com/). 
 
 ```html
 <script src="/js/sugar.min.js"></script>
@@ -140,7 +138,7 @@ $("#form").my({
 	}
 });
 ```
-Messages returned by validator are put into DOM element with class `.my-error-tip`, which must be located inside the control’s container. So to make messages visible we must explicitly add this element into html. If no such elemnt found error message will be added as `title` attribute to the control itself. If control has own `title` it is stashed until error corrected. 
+Messages returned by validator are put into DOM element with class `.my-error-tip`, which must be located inside the control’s container. So to make messages visible you must explicitly add this element into html. If no such element found error message will be added as `title` attribute to the control itself. If the control has own `title`, its value is stashed until error corrected. 
 ```html
 <div>
 	<input id="name" type="text" />
@@ -148,9 +146,9 @@ Messages returned by validator are put into DOM element with class `.my-error-ti
 </div>
 ```	
 #### Checking entire form has no errors
-`$("#form").my("errors")` returns object, which keys are invalid fields and their values are error messages. If all the fields are ok, `{}` is returned. If form has child forms, their errors are mapped to appropriate branch.
+`$("#form").my("errors")` returns an object, which keys are invalid fields, and values are error messages. If all fields are ok, `{}` is returned. If form has children forms, their errors are mapped to appropriate branch.
 
-To spot whether entire data is valid or not call `$("#form").my("valid")`.
+To spot whether entire data is valid call `$("#form").my("valid")`, which returns `true` is everything is ok.
 	
 Dependencies
 -----
@@ -229,7 +227,6 @@ Init functions
 -----
 
 #### Preparing form during initialization
-If underlying form is just a HTML carcass it's good idea to enrich it during $.my instance initialization without any code outside the manifest.
 ```js
 $("#form").my({
 	data: { range: [30, 70] },
@@ -251,7 +248,7 @@ Here we apply jQuery.UI Slider plugin over `#range` control. Data attribute `ran
 Certainly HTML carcass itself can be generated using `init` function, placed as child of manifest's root – as in above example. 
 
 #### Async init
-To become async `.init` function must return promise of any sort (so-called ‘then-able’). Initialization sequence continues when promise is resolved or fails if promise is rejected.
+To become async `.init` function must return promise of any sort (so-called ‘then-able’). Initialization sequence continues when the promise is resolved. If app promise is rejected, entire sequence also fails.
 
 ```js
 $("#form")
@@ -279,8 +276,6 @@ $("#form")
 });
 ```
 jQuery AJAX implementation returns promise, so we may return `$.ajax` result directly. When data is received promise is resolved and initialization continues. When it is finished, promise returned by $.my is resolved with form’s `.data`.
-
-Promises are new to community and yet have no strict standard – so to simplify code `$.Deferred()` model is used inside jQuery.my. 
 
 Nested and repeated forms
 -----

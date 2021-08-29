@@ -1,7 +1,7 @@
 {
   "name": "jquerymy",
-  "version": "1.2.16",
-  "description": "A lightweight jQuery plugin for complex two-way data binding in real time.",
+  "version": "1.2.18",
+  "description": "A lightweight jQuery plugin for complex reactive two-way DOM-JSON data binding.",
   "main": "./jquerymy.js",
   "authors": [
   	"ermouth <ermouth@gmail.com>"
