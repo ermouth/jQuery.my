@@ -3,9 +3,9 @@
   "title": "jQuery.my",
   "description": "A lightweight jQuery plugin for complex reactive two-way DOM-JSON data binding.",
   "keywords": [
-    "MVVM", "framework", "ui", "form", "validation", "data binding"
+    "MVVM", "framework", "ui", "form", "validation", "data binding", "reactive binding"
   ],
-  "version": "1.2.18",
+  "version": "1.3.3",
   "author": {
     "name": "ermouth",
     "url": "https://github.com/ermouth"
@@ -23,12 +23,12 @@
   	}
   ],
   "bugs": "https://github.com/ermouth/jQuery.my/issues",
-  "homepage": "http://jquerymy.com/",
-  "docs": "http://jquerymy.com/api.html",
-  "demo": "http://jquerymy.com/#CW-demos",
-  "download": "http://jquerymy.com/download.html",
+  "homepage": "https://jquerymy.com/",
+  "docs": "https://jquerymy.com/api.html",
+  "demo": "https://jquerymy.com/#CW-demos",
+  "download": "https://jquerymy.com/download.html",
   "dependencies": {
-    "jquery": "~2",
+    "jquery": ">=2.2",
     "sugarjs": "~1.4.0"
   }
 }
