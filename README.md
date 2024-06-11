@@ -1,7 +1,7 @@
 jQuery.my
 =========
 
-Below API description is not complete, see [jquerymy.com](http://jquerymy.com) for more detailed API, examples and list of compatible controls.
+Below API description is not complete, see [jquerymy.com](https://jquerymy.com) for more detailed API, examples, and also for a list of all supported controls.
 
 * [__Get/set data__](#retrieving-and-updating-data) 
 * [__Validation__](#validation) 
@@ -11,15 +11,15 @@ Below API description is not complete, see [jquerymy.com](http://jquerymy.com) f
 * [__Nested forms__](#nested-and-repeated-forms) 
 * [__Styling forms__](#styling-forms)
 
-__jquerymy is a plugin for complex reactive two-way data binding between DOM and nested JS state objects.__
+__jquerymy is a plugin for complex reactive two-way data binding between DOM and state objects.__
 
-jquerymy recognizes standard HTML controls as well as composite controls rendered by jQuery Mobile, nearly all jQuery UI widgets, Redactor, Ace, CodeMirror, Select2 and others. 
+jquerymy recognizes standard HTML controls as well as composite controls rendered by jQuery UI widgets, Redactor, Ace, CodeMirror, Select2 and other plugins. 
 
-jquerymy provides comprehensive validation, conditional formatting and dependencies resolution. Apps can be nested – each $.my instance can be used as control in a parent form, if any.
+$.my provides comprehensive validation, conditional formatting and dependencies resolution. Apps can be nested – each $.my instance can be used as component of another $.my instance.
 
 jquerymy also incorporates simple template engine and modal dialog mechanics.
 
-See [cloudwall.me](https://cloudwall.me) as an example of web-app platform built on top of $.my. Also good example of a very large jquerymy app is [Photon](https://github.com/ermouth/couch-photon), an unofficial administrative panel for CouchDB. 
+See [cloudwall.me](https://cloudwall.me) as an example of web-app platform built on top of $.my. Another example of a large $.my app is [Photon](https://github.com/ermouth/couch-photon), an unofficial administrative panel for CouchDB. 
 
 Setup
 -----
@@ -39,21 +39,21 @@ Quick start
 ```js
 var person={};
 var manifest = {
-	"data": { name:"", metrics:{ age:"" }},
-	"init": function ($node, formRuntimeObj) {
-		$node.html(
-			'<div><input id="name" type="text" /></div>' +
-			'<div><input id="age" type="number" /></div>'
-		);
-	},
-	"ui":{
-		"#name": { bind: "name" },
-		"#age" : { bind: "metrics.age" }
-	}
+  'data': { name:'', metrics:{ age:'' }},
+  'init': function ($node, formRuntimeObj) {
+    $node.html(
+      '<div><input id='name' type='text' /></div>' +
+      '<div><input id='age' type='number' /></div>'
+    );
+  },
+  'ui':{
+    '#name': { bind: 'name' },
+    '#age' : { bind: 'metrics.age' }
+  }
 };
 // Init $.my
-$("#form").my(manifest, person);
-```	
+$('#form').my(manifest, person);
+```  
 Now form inputs are filled with init values and any interaction with controls immediately mutates `person` object. Dot notation of deep-level bindings is just syntax sugar. It also can be used with arrays in style like `someArray.1`.
 
 First param passed to $.my is denoted below as __manifest__.
@@ -61,36 +61,36 @@ First param passed to $.my is denoted below as __manifest__.
 Retrieving and updating data
 -----
 
-__To get__ form data just read value of the `person` variable or read `$("#form").my("data")`. Second way is good if $.my was initialized without any init value passed. 
+__To get__ form data just read value of the `person` variable or read `$('#form').my('data')`. Second way is good if $.my was initialized without any init value passed. 
 
-__To put__ new data into already initialized instance of $.my call `$("#form").my("data", {name: "Mike"})`. Note you can update data partially. Form is redrawn and revalidated after applying new data .
+__To put__ new data into already initialized instance of $.my call `$('#form').my('data', {name: 'Mike'})`. Note you can update data partially. Form is redrawn and revalidated after applying new data .
 
 More complex data bind
 -----
 
-The `.bind` field can be defined as a bi-directional function. It receives entire data object and new value as params. 
+The `.bind` property can be defined as a bi-directional function. It receives entire data object and new value as params. 
 If `null` is passed function must only return value for DOM control, otherwise function must put value into 
 data object and then return value for DOM.
 
-So `bind` function implements both getter and setter – depending on value passed.
+So the `bind` function implements both getter and setter depending on value passed.
 
 ```js
-$("#form").my({
-	ui:{
-		"#name": "name",
-		"#age" : {
-			bind: function (data, value, $control) {
-				if (value != null) data.metrics.age = value; 
-				return data.metrics.age = 
-					(data.metrics.age + "").replace(/\D/g,"");
-			}
-		}
-	}
+$('#form').my({
+  ui:{
+    '#name': 'name',
+    '#age' : {
+      bind: function (data, value, $control) {
+        if (value != null) data.metrics.age = value; 
+        return data.metrics.age = 
+          (data.metrics.age + '').replace(/\D/g,'');
+      }
+    }
+  }
 }, person);
 ```
-Note bind function in example won't allow to input anything than number. Pressing non-num key will do nothing with input, non-num chars are stripped immediately.
+Note bind function in example does not allow to put anything than number. Pressing non-num key will does nothing with input, non-num chars are stripped immediately.
 
-Third param `$control` is jQuery reference to the control being processed, it can be useful for navigating over form. Calling `$control.my("find", "#name")` returns `#name` control for example. 
+Third param `$control` is jQuery reference to the control being processed, it can be useful for navigating over form. Calling `$control.my('find', '#name')` returns `#name` control for example. 
 
 Validation
 -----
@@ -103,18 +103,18 @@ If control is not interactive – we bind some data with `<div>` element for exa
 
 #### RegExp validation
 ```js
-$("#form").my({
-	ui:{
-		"#name": { 
-			bind: "name", 
-			check:/^[a-z]{10}$/i,
-			error:"10 latin chars" // Optional
-		},
-		"#age":  { bind: "metrics.age" }
-	}
+$('#form').my({
+  ui:{
+    '#name': { 
+      bind: 'name', 
+      check:/^[a-z]{10}$/i,
+      error:'10 latin chars' // Optional
+    },
+    '#age':  { bind: 'metrics.age' }
+  }
 });
 ```
-If user puts something other than 10-letter combination into `#name` input, `class` attribute of the parent `<div>` is set to `.my-error`. 
+If user puts something different than 10-letter combination into `#name` input, the `class` attribute of the parent `<div>` is set to `.my-error`. 
 
 #### Validating with function
 Validator function receives same params as `.bind` but executed before bind. Validator must return error message string – or empty string if value is ok.
@@ -122,70 +122,70 @@ Validator function receives same params as `.bind` but executed before bind. Val
 Unlike `.bind` validator is never called with `value` equal to `null`, it always receives real value.
 
 ```js
-$("#form").my({
-	data:{/*...*/},
-	init: function ($node){/*...*/},
-	ui:{
-		"#name": { 			
-			"bind": "name", 
-			"check": function (data, value, $control) {
-				if (value.length > 20) return "Too long name"; 
-				if (!/^[a-z]+$/.test(value)) return "Only letters allowed"; 
-				return "";
-			}			
-		},
-		"#age": "age"
-	}
+$('#form').my({
+  data:{/*...*/},
+  init: function ($node){/*...*/},
+  ui:{
+    '#name': {       
+      'bind': 'name', 
+      'check': function (data, value, $control) {
+        if (value.length > 20) return 'Too long name'; 
+        if (!/^[a-z]+$/.test(value)) return 'Only letters allowed'; 
+        return '';
+      }      
+    },
+    '#age': 'age'
+  }
 });
 ```
 Messages returned by validator are put into DOM element with class `.my-error-tip`, which must be located inside the control’s container. So to make messages visible you must explicitly add this element into html. If no such element found error message will be added as `title` attribute to the control itself. If the control has own `title`, its value is stashed until error corrected. 
 ```html
 <div>
-	<input id="name" type="text" />
-	<span class="my-error-tip"></span>
+  <input id="name" type="text" />
+  <span class="my-error-tip"></span>
 </div>
-```	
+```  
 #### Checking entire form has no errors
-`$("#form").my("errors")` returns an object, which keys are invalid fields, and values are error messages. If all fields are ok, `{}` is returned. If form has children forms, their errors are mapped to appropriate branch.
+`$('#form').my('errors')` returns an object which keys are invalid fields, and values are error messages. If all fields are ok, `{}` is returned. If form has children forms, their errors are mapped to appropriate branch.
 
-To spot whether entire data is valid call `$("#form").my("valid")`, which returns `true` is everything is ok.
-	
+To spot whether entire data is valid call `$('#form').my('valid')`, which returns `true` is everything is ok.
+  
 Dependencies
 -----
 
 Let it be a form that calculates product of two values. We need to recalculate product each time any of factors changes.
 ```js
-$("#form").my({
-	data:{ num1:"10", num2:"1.5" },
-	init: function ($node){/*...*/},
-	ui:{
-		"#factor1": "num1", 
-		"#factor2": "num2",
-		"#product": {
-			bind: function (data) {
-				return data.num1 * data.num2;
-			},
-			watch: "#factor1,#factor2" //shorthand for ["#factor1", "#factor2"]
-		}
-	}
+$('#form').my({
+  data:{ num1:'10', num2:'1.5' },
+  init: function ($node){/*...*/},
+  ui:{
+    '#factor1': 'num1', 
+    '#factor2': 'num2',
+    '#product': {
+      bind: function (data) {
+        return data.num1 * data.num2;
+      },
+      watch: '#factor1,#factor2' //shorthand for ['#factor1', '#factor2']
+    }
+  }
 });
 ```
 Product is not mapped to data – `.bind` function does not save anything. It only returns value to put in `#product` DOM element. Every time `#factor1` or `#factor2` receive input `#product` is recalculated.
 
 There is another syntax to define dependencies.
 ```js
-$("#form").my({
-	ui:{
-		"#factor1": {
-			bind: "num1", 
-			recalc: "#product"
-		},
-		"#factor2": "num2",
-		"#product": {
-			bind: function (data) {return data.num1 * data.num2},
-			watch: "#factor2"
-		}
-	}
+$('#form').my({
+  ui:{
+    '#factor1': {
+      bind: 'num1', 
+      recalc: '#product'
+    },
+    '#factor2': 'num2',
+    '#product': {
+      bind: function (data) {return data.num1 * data.num2},
+      watch: '#factor2'
+    }
+  }
 });
 ```
 It behaves the same way. Note that `.recalc` is processed prior to `.watch`. So if a field depends on some other fields via both `.recalc` and `.watch` attributes, recalcs go first.
@@ -197,24 +197,24 @@ Conditional formatting and disabling
 
 $.my can apply different classes depending on data object state.
 ```js
-$("#form").my({
-	ui:{
-		"#name": { 			
-			bind: "name", 
-			recalc: "#age",
-			css: {
-				"orange":/^.{10}$/
-			}	
-		},
-		"#age": {
-			bind: "age",
-			css:{
-				":disabled": function (data, value) {
-					return data.name.length == 0;
-				}
-			}
-		}
-	}
+$('#form').my({
+  ui:{
+    '#name': {       
+      bind: 'name', 
+      recalc: '#age',
+      css: {
+        'orange':/^.{10}$/
+      }  
+    },
+    '#age': {
+      bind: 'age',
+      css:{
+        ':disabled': function (data, value) {
+          return data.name.length == 0;
+        }
+      }
+    }
+  }
 });
 ```
 Here if `#name` is exactly 10 chars, its container will receive class `orange`. If value doesn't match regexp then class `orange` is removed.
@@ -228,19 +228,19 @@ Init functions
 
 #### Preparing form during initialization
 ```js
-$("#form").my({
-	data: { range: [30, 70] },
-	init: function ($node) {
-		$node.html('<input id="range" />')
-	},
-	ui:{
-		"#range": { 	
-			init: function ($control) {
-				$control.slider(range: true, min: 0, max: 100);
-			},	
-			bind: "range"
-		}
-	}
+$('#form').my({
+  data: { range: [30, 70] },
+  init: function ($node) {
+    $node.html('<input id="range" />')
+  },
+  ui:{
+    '#range': {   
+      init: function ($control) {
+        $control.slider(range: true, min: 0, max: 100);
+      },  
+      bind: 'range'
+    }
+  }
 });
 ```
 Here we apply jQuery.UI Slider plugin over `#range` control. Data attribute `range` will receive array of two values – slider start and stop. On start control will be set to 30–70 range.
@@ -251,28 +251,28 @@ Certainly HTML carcass itself can be generated using `init` function, placed as 
 To become async `.init` function must return promise of any sort (so-called ‘then-able’). Initialization sequence continues when the promise is resolved. If app promise is rejected, entire sequence also fails.
 
 ```js
-$("#form")
+$('#form')
 .my({
-	data: { name:"" },
-	init: function ($node, runtime) {
-		var promise = $.ajax({
-			url:"http://some.url"
-		}).then(function (res) {
-			// We received response, gen form HTML
-			$node.html('<input id="name" type="text"/>')
-			// Assume res is string, mount default data
-			runtime.data.name = res;
-		});
-		
-		return promise;
-	},
-	ui:{"#name": "name"}
+  data: { name:'' },
+  init: function ($node, runtime) {
+    var promise = $.ajax({
+      url:'http://some.url'
+    }).then(function (res) {
+      // We received response, gen form HTML
+      $node.html('<input id="name" type="text"/>')
+      // Assume res is string, mount default data
+      runtime.data.name = res;
+    });
+    
+    return promise;
+  },
+  ui:{'#name': 'name'}
 })
 .then(function (data){
-	// Do something when form init finished 
+  // Do something when form init finished 
 })
 .fail(function(errMessage) {
-	// Do something if init failed
+  // Do something if init failed
 });
 ```
 jQuery AJAX implementation returns promise, so we may return `$.ajax` result directly. When data is received promise is resolved and initialization continues. When it is finished, promise returned by $.my is resolved with form’s `.data`.
@@ -282,53 +282,53 @@ Nested and repeated forms
 
 Each DOM node which was instantiated with $.my can act as a single control for some parent $.my form. DOM node `#child` is instantiated with own manifest in example. 
 ```js
-$("#form")
+$('#form')
 .my({
-	data: { name:"" , child:{}},
-	init: function ($node, runtime) {
-		//Draw HTML
-	},
-	ui:{
-		"#name": "name",
-		"#child" :{
-			bind:"child", 
-			check:true,		//ensures child’s errors invalidate parent
-			manifest:{
-				data:{/* child’s data struct */},
-				init:{/* child’s init, can be async */},
-				ui:{ /* child’s ui */}
-			}
-		}
-	}
+  data: { name:'' , child:{}},
+  init: function ($node, runtime) {
+    //Draw HTML
+  },
+  ui:{
+    '#name': 'name',
+    '#child' :{
+      bind:'child', 
+      check:true,    //ensures child’s errors invalidate parent
+      manifest:{
+        data:{/* child’s data struct */},
+        init:{/* child’s init, can be async */},
+        ui:{ /* child’s ui */}
+      }
+    }
+  }
 })
 ````
 __To build list of nested forms__ just bind it with array. Below example builds list of similar array elements. 
 ```js
-$("#form")
+$('#form')
 .my({
-	data: { name:"" , child:[ /* array of elts */]},
-	init: function ($node, runtime) {
-		//Draw HTML
-	},
-	ui:{
-		"#name": "name",
-		"#child" :{
-			bind:"child", 
-			check:true,
-			list:'<div class="someClass"></div>', 	//optional
-			init: function ($list) {				//optional
-				// Makes list items sortable by drag 
-				// and drop, jQuery UI plugin required
-				$list.sortable();
-			},
-			manifest:{
-				data:{/* child’s data struct */},
-				init:{/* child’s init, can be async */},
-				ui:{ /* child’s ui */}
-			},
-			
-		}
-	}
+  data: { name:'' , child:[ /* array of elts */]},
+  init: function ($node, runtime) {
+    //Draw HTML
+  },
+  ui:{
+    '#name': 'name',
+    '#child' :{
+      bind:'child', 
+      check:true,
+      list:'<div class="someClass"></div>',   //optional
+      init: function ($list) {        //optional
+        // Makes list items sortable by drag 
+        // and drop, jQuery UI plugin required
+        $list.sortable();
+      },
+      manifest:{
+        data:{/* child’s data struct */},
+        init:{/* child’s init, can be async */},
+        ui:{ /* child’s ui */}
+      },
+      
+    }
+  }
 })
 ````
 
@@ -340,32 +340,33 @@ $.my understands many types of controls and automatically selects appropriate ev
 
 But sometimes you need no realtime response – in case of buttons or links for example. Bind function must be executed only when button is really clicked, not while initializing. 
 ```js
-$("#form").my({
-	ui:{
-		"#button": { 			
-			bind: function (data, value) {
-				if (value != null) {
-					//do something
-				}
-			}, 
-			events: "click,dblclick"	
-		}
-	}
+$('#form').my({
+  ui:{
+    '#button': {       
+      bind: function (data, value) {
+        if (value != null) {
+          //do something
+        }
+      }, 
+      events: 'click,dblclick'  
+    }
+  }
 });
 ```
 The `events` attribute here defines that bind executed after click or doubleclick events on `#button` element. Note `.bind` returns `undefined` here – this syntax allows us to keep control's content intact. 
+
 #### Delays
 There are several cases bind function must have kind of an anti-jitter. If control is jQuery.UI Slider or conventional HTML5 `<input type="range">` it’s reasonable to exec `.bind` when slider stops. 
 Complex bind function executed every pixel slider moves can be real CPU and RAM hog.
 
 ```js
-$("#form").my({
-	ui:{
-		"#slider": { 			
-			bind: function (data, val) { /* do somth*/ }, 
-			delay: 150	
-		}
-	}
+$('#form').my({
+  ui:{
+    '#slider': {       
+      bind: function (data, val) { /* do somth*/ }, 
+      delay: 150  
+    }
+  }
 });
 ```
 In this example `.bind` starts only after last event within 150ms. If change events are raised more often then one in 150ms, they are supressed. See [live demo](http://jquerymy.com/s/delay078.html) – its much more clear than description.
@@ -376,24 +377,24 @@ Reusable code snippets
 
 Some functions or fields inside manifest can contain code with matching fragments. It can be same regexps for different fields, or some dictionaries used here and there etc. They can be stored at manifest's root and acessed from `ui` section members by reference.
 ```js
-$("#form").my({
-	NumCheck:/^\d+$/,
-	ForbiddenPasswords:["123","qwerty"],
-	ui:{
-		"#num": { 	
-			bind: "num",
-			check: "NumCheck"
-		},
-		"#pwd":{
-			bind:"password",
-			check: function (data, value) {
-				var pwdList = this.ForbiddenPasswords;
-				if (pwdList.indexOf(value) == -1) return "Too simple password!";
-				return "";
-			}
-		}
-	},
-	SomeFunction: function () { // this points to runtime manifest }
+$('#form').my({
+  NumCheck:/^\d+$/,
+  ForbiddenPasswords:['123','qwerty'],
+  ui:{
+    '#num': {   
+      bind:  'num',
+      check: 'NumCheck'
+    },
+    '#pwd':{
+      bind:  'password',
+      check: function (data, value) {
+        var pwdList = this.ForbiddenPasswords;
+        if (pwdList.indexOf(value) == -1) return 'Too simple password!';
+        return '';
+      }
+    }
+  },
+  SomeFunction: function () { // bound, this points to the runtime }
 });
 ```
 Not only checks but every function defined in `.ui` section receives `this` pointing to runtime manifest. Functions located on the first level of manifest (`SomeFunction` in example above) also receive `this` pointing to runtime. 
@@ -402,59 +403,59 @@ Not only checks but every function defined in `.ui` section receives `this` poin
 Manifest delivery
 -----
 
-There is buil-in method to convert manifest with functions and regexps into conventional JSON. It's useful for on-demand manifest delivery using ajax calls. `$.my.tojson(manifest)` 
-returns correct JSON-encoded string with all functions and regexps converted to strings.
+There is built-in method to convert manifest with functions and regexps into conventional JSON. It’s useful for on-demand manifest delivery using ajax calls. `$.my.tojson(manifest)` returns correct JSON-encoded string with all functions and regexps converted to strings.
 
-This approach is used in CouchDB to store internal functions as JSON docs. It's quite simple and straightforward.
+This approach is used in CouchDB to store internal functions as JSON docs. It’s quite simple and straightforward.
 ```
 $.my.tojson({
-	a:function(){}, 
-	b:/./
+  a:function(){}, 
+  b:/./
 })  
 >> '{"a":"function (){}", "b":"new RegExp(/./)"}'
-```	
+```  
 Method `$.my.fromjson(someJSON)` unwinds encoded functions and regexps into full-featured code.
 
-There is no need to decipher encoded manifests before passing them to $.my – they are unwinded automatically.
+There is no need to decipher encoded manifests before passing them to $.my – they are unwound automatically.
 
 Styling forms
 -----
 
-Manifest can contain `style` property that defines hierarchy of css rules for form instance. Some rules can be static and other calculated according to form’s init data.
+Manifest can have `style` property which defines hierarchy of css rules for a form instance. Rules can be both static and dynamic, recalculated on window resize or by command.
+
 ```javascript
 {
-	id:"ManifestId",
-	data:{...},
-	init function(){...},
-	ui:{...},
-	style:{
-		" .red": "color:#c02",
-		" .item":{
-			" .name": "font-size:110%",
-			" .user": function ($form, form) {
-				if ($form.width()<500) return "display:none";
-				return "font-size:80%";
-			}
-		},
-		" h2,h3":{
-			"": 		 "font-weight:bold"
-			".light": 	 "font-weight:normal",
-			">img.icon": "width:24px;"
-		}
-	}
+  id:    'ManifestId',
+  data:  {...},
+  init:  function(){...},
+  ui:    {...},
+  style: {
+    ' .red': 'color:#c02',
+    ' .item':{
+      ' .name': 'font-size:110%',
+      ' .user': function ($form, form) {
+        if ($form.width() < 500) return 'display:none';
+        return 'font-size:80%';
+      }
+    },
+    ' h2,h3':{
+      '':          'font-weight:bold'
+      '.light':    'font-weight:normal',
+      '>img.icon': 'width:24px;'
+    }
+  }
 }
 ```
 Syntax is more or less straightforward. Note spaces before most rules. Above example will be rendered in two `<style>` sections. 
 
 ```html
 <style id="my-manifest-abc123def">
-	.my-manifest-abc123def .red:{color:#c02}
-	.my-manifest-abc123def .item .name {font-size:110%}
-	.my-manifest-abc123def .h2 {font-weight:bold}
-	...
+  .my-manifest-abc123def .red:{color:#c02}
+  .my-manifest-abc123def .item .name {font-size:110%}
+  .my-manifest-abc123def .h2 {font-weight:bold}
+  ...
 </style>
 <style id="my-form-098fea432">
-	.my-form-098fea432 .item .user:{display:none}
+  .my-form-098fea432 .item .user:{display:none}
 </style>
 ```
 
@@ -471,20 +472,20 @@ Settings
 Below parameters of $.my instance can be tuned for an entire form:
 ```js
 var manifest = {
-	params:{
-		delay: 0,		//global anti-jitter delay, can be overriden
-		depth: 2,		//depth of chained/looped recalc resolution
-		errorTip: ".my-error-tip",		//jQuery selector for error msg
-		errorCss: "my-error"			//class to mark invalid controls
-	},
-	data: {...},
-	init: function ($form) {...},
-	ui:{...}
+  params:{
+    delay: 0,    //global anti-jitter delay, can be overriden
+    depth: 2,    //depth of chained/looped recalc resolution
+    errorTip: '.my-error-tip',    //jQuery selector for error msg
+    errorCss: 'my-error'      //class to mark invalid controls
+  },
+  data: {...},
+  init: function ($form) {...},
+  ui:{...}
 };
 ```
 Full set of settings is quite long, they are listed and explained at [jquerymy.com/api.html](http://jquerymy.com/api.html#CW-settings)
 
 Compatibility
 -----
-Works fine on IE9+ and other browsers. IE8 is also supported, but apps require thorough testing 
+Works fine on IE11+ and other browsers. Earlier IE are also supported, but apps require thorough testing 
 and optimizations to avoid lags.
